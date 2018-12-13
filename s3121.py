@@ -1,10 +1,15 @@
+from sys import argv, exit
 from threading import Thread
 from queue import Queue
 from intellibus import *
 import flask
 
+if len(argv) != 2:
+	print('Error: You must specify the name of the serial port on the command line.')
+	exit(255)
+
 app = flask.Flask(__name__)
-bus = Interface('/dev/ttyUSB1')
+bus = Interface(argv[1])
 sync = SyncState(0x7FFE)
 display = b' ' * 16 * 4
 ping_counter = 0
