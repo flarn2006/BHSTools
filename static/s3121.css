@@ -1,0 +1,95 @@
+body {
+	background-color: #111;
+	color: white;
+	font-family: sans-serif;
+}
+
+header {
+	background-color: #0000aa;
+	padding: 0.25in;
+	margin-left: 1in;
+}
+
+h1 {
+	font-size: 36pt;
+	font-family: monospace;
+	margin: 0;
+}
+
+header p {
+	margin: 0;
+	font-size: 16pt;
+	font-style: italic;
+}
+
+small {
+	font-weight: normal;
+}
+
+.housing {
+	float: left;
+	margin-right: 0.5in;
+	width: 4in;
+	border: 8px outset #eee;
+	border-radius: 0.25in;
+	background-color: #eee;
+	color: black;
+}
+
+.top {
+	margin: 0.125in;
+	border-radius: 0.1875in;
+	border: 4px outset #eee;
+}
+
+.screen-border {
+	background-color: #aaa;
+	margin: 0.125in;
+	border: 2px groove #444;
+	border-radius: 0.0625in;
+}
+
+.screen {
+	margin: 0.125in;
+	border: 0.25in inset #aaa;
+	border-radius: 0.0625in;
+	background-color: #00e357;
+	font-family: monospace;
+	font-size: 19pt;
+	text-align: center;
+}
+
+.top .keys {
+	margin: 0.25in 0.0625in;
+	padding: 0.0625in;
+	border: 4px inset #eee;
+	border-radius: 0.125in;
+}
+
+.keys div {
+	padding: 0.25in;
+}
+
+.top .keys, .keys div {
+	display: flex;
+	justify-content: space-between;
+}
+
+button {
+	width: 0.5625in;
+	height: 0.3125in;
+	border: 2px outset #aaa;
+	border-radius: 0.0625in;
+	background-color: #aaa;
+	font-size: 12pt;
+	font-weight: bold;
+	font-style: italic;
+}
+
+button small {
+	font-size: 7pt;
+}
+
+.top .keys button, .keys div button:last-child {
+	width: 0.75in;
+}
