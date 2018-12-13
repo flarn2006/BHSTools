@@ -7,6 +7,7 @@ app = flask.Flask(__name__)
 bus = Interface('/dev/ttyUSB1')
 sync = SyncState(0x7FFE)
 display = b' ' * 16 * 4
+ping_counter = 0
 curX = 0
 curY = 0
 keyqueue = Queue()
@@ -49,7 +50,9 @@ try:
 		if type(pkt) is SyncPing and pkt.addr == 0x7FFE:
 			bus.write(sync.reply(0x7FFE))
 			if keyqueue.empty():
-				bus.write(Message(0, 0x7FFE, fromhex('B9 0B 00 00 FF FF FF FF 00 01 30 0C 05 00 00 00 07 01'), 0))
+				if ping_counter == 0:
+					bus.write(Message(0, 0x7FFE, fromhex('B9 0B 00 00 FF FF FF FF 00 01 30 0C 05 00 00 00 07 01'), 0))
+				ping_counter = (ping_counter + 1) % 60
 			else:
 				keycode = keyqueue.get()[:2].rjust(2, '0')
 				if keycode.upper() in '3C BC 68 E8 3E BE 1B 9B 73 F3 08 88 2D AD 2B AB'.split(' '):
