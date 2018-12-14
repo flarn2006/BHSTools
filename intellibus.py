@@ -170,13 +170,67 @@ class SyncState:
 		self.flags ^= (2 if as_master else 1)
 		return self.flags
 	
-	def ping(self, addr):
+	def ping(self):
 		self.counter += 1
 		self.counter &= 0x7F
-		return SyncPing(addr, self.flags & 1, self.counter)
+		return SyncPing(self.myaddr, self.flags & 1, self.counter)
 	
-	def reply(self, addr):
-		return SyncReply(addr, self.flags & 2)
+	def reply(self):
+		return SyncReply(self.myaddr, self.flags & 2)
+
+class DummySyncState(SyncState):
+	def __init__(self):
+		super().__init__(0x7FFF)
+
+	def receive(self, pkt):
+		return True
+	
+	def next(self, as_master):
+		return 0
+
+class VirtDevice:
+	def __init__(self, kind, model, serial_no, hdw_conf=0, fw_ver=0):
+		self.addr = None
+		self.sync = DummySyncState()
+		self.kind = kind
+		self.model = model
+		self.serial_no = serial_no
+		self.xmitters = []
+		self.hdw_conf = hdw_conf
+		self.fw_ver = fw_ver
+	
+	def send(self, msg, **kwargs):
+		if type(msg) is Message:
+			msg = msg.payload
+		if 'flags' in kwargs:
+			flags = kwargs['flags']
+		else:
+			flags = self.sync.next(False)
+		pkt = Message(0, self.addr or 0, msg, flags)
+		for _ in range(kwargs['count'] if 'count' in kwargs else 6):
+			for x in self.xmitters:
+				x(pkt)
+	
+	def receive(self, pkt):
+		if self.sync.receive(pkt):
+			if type(pkt) is SyncPing:
+				if pkt.addr == self.addr:
+					for x in self.xmitters:
+						x(self.sync.reply())
+			elif type(pkt) is Message:
+				cmd = pkt.getcmd()
+				arg = pkt.getarg()
+				if cmd == 0xBBC:
+					self.send((0xBB9, self.serial_no + struct.pack('<HHHHH', 0x100, self.model, self.kind, self.hdw_conf, self.fw_ver)))
+				elif cmd == 0xBBA:
+					self.send((0xBBB, arg))
+					self.addr = struct.unpack('<H', arg[-2:])[0]
+					self.sync = SyncState(self.addr)
+				elif pkt.dest == self.addr:
+					self.handle_cmd(cmd, arg)
+
+	def handle_cmd(cmd, arg):
+		pass
 
 def tohex(data):
 	return ' '.join(['{:02X}'.format(b) for b in data])

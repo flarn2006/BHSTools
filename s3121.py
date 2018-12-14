@@ -53,7 +53,7 @@ try:
 			continue
 		
 		if type(pkt) is SyncPing and pkt.addr == 0x7FFE:
-			bus.write(sync.reply(0x7FFE))
+			bus.write(sync.reply())
 			if keyqueue.empty():
 				if ping_counter == 0:
 					bus.write(Message(0, 0x7FFE, fromhex('B9 0B 00 00 FF FF FF FF 00 01 30 0C 05 00 00 00 07 01'), 0))
