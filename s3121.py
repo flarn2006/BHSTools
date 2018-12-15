@@ -25,8 +25,7 @@ bus.write = new_bus_write
 
 @app.route('/')
 def flask_index():
-	display_str = process_display_str(display)
-	return flask.render_template('s3121.html', lines=(display_str[:16], display_str[16:32], display_str[32:48], display_str[48:]))
+	return flask.send_file('static/s3121.html')
 
 @app.route('/display')
 def flask_display():

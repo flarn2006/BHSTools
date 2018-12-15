@@ -10,11 +10,6 @@ function sendKey(code)
 	xhr.send(code.toString(16))
 }
 
-function makenbsp(str)
-{
-	return str.replace(/\s/g, '\xa0');
-}
-
 function updateDisplay()
 {
 	var xhr = new XMLHttpRequest();
@@ -22,10 +17,14 @@ function updateDisplay()
 	xhr.onreadystatechange = function() {
 		if (xhr.readyState === XMLHttpRequest.DONE) {
 			if (xhr.status === 200) {
-				document.getElementById('line1').innerText = makenbsp(xhr.response.slice(0, 16));
-				document.getElementById('line2').innerText = makenbsp(xhr.response.slice(16, 32));
-				document.getElementById('line3').innerText = makenbsp(xhr.response.slice(32, 48));
-				document.getElementById('line4').innerText = makenbsp(xhr.response.slice(48));
+				var text = '';
+				for (var i=0; i<64; i+=16) {
+					if (i > 0) {
+						text += '\n'
+					}
+					text += xhr.response.slice(i, i+16)
+				}
+				document.getElementById('screen').value = text;
 			}
 		}
 	};

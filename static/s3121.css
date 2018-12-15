@@ -49,7 +49,7 @@ small {
 	border-radius: 0.0625in;
 }
 
-.screen {
+#screen {
 	margin: 0.125in;
 	border: 0.25in inset #aaa;
 	border-radius: 0.0625in;
