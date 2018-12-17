@@ -1,7 +1,6 @@
 import struct
 from crcmod.predefined import PredefinedCrc
 from serial import Serial
-from random import randint
 
 class Packet:
 	def __init__(self, data):
@@ -45,21 +44,24 @@ class Packet:
 			return self
 
 class SyncPing(Packet):
-	def __init__(self, addr, flag=False, n=None):
+	def __init__(self, addr, flag, counter):
 		self.addr = addr
 		self.flag = flag
-		if n is None:
-			self.n = randint(0,255)
-		else:
-			self.n = n
+		self.counter = counter
+	
+	def __repr__(self):
+		return '<({}*) PING->{:04X}: {:02X}>'.format('1' if self.flag else '0', self.addr, self.counter)
 	
 	def gen_data(self):
-		return struct.pack('<HB', self.addr | (0x8000 if self.flag else 0), self.n)
+		return struct.pack('<HB', self.addr | (0x8000 if self.flag else 0), self.counter)
 
 class SyncReply(Packet):
 	def __init__(self, addr, flag=False):
 		self.addr = addr
 		self.flag = flag
+	
+	def __repr__(self):
+		return '<(*{}) {:04X}->PONG>'.format('1' if self.flag else '0', self.addr)
 	
 	def gen_data(self):
 		return struct.pack('<H', self.addr | (0x8000 if self.flag else 0))
@@ -75,6 +77,9 @@ class Message(Packet):
 			self.payload = payload
 		self.flags = flags
 		self.n = n
+	
+	def __repr__(self):
+		return '<({:02b}) {:04X}->{:04X}: {}>'.format(self.flags, self.src, self.dest, tohex(self.payload))
 	
 	def gen_data(self):
 		dest_field = (self.dest | 0x8000) if (self.flags & 1) else self.dest
@@ -130,7 +135,6 @@ class SyncState:
 	def __init__(self, myaddr, master=False, slave=False):
 		self.flags = 0
 		self.myaddr = myaddr
-		self.counter = 0
 		if master:
 			self.flags |= 2
 		if slave:
@@ -147,7 +151,6 @@ class SyncState:
 					if self.flags & 1:
 						print('clearing flag by ping')
 					self.flags &= 2
-				self.counter = pkt.n
 			return True
 		elif type(pkt) is SyncReply:
 			if pkt.addr == self.myaddr:
@@ -170,64 +173,134 @@ class SyncState:
 		self.flags ^= (2 if as_master else 1)
 		return self.flags
 	
-	def ping(self):
-		self.counter += 1
-		self.counter &= 0x7F
-		return SyncPing(self.myaddr, self.flags & 1, self.counter)
-	
 	def reply(self):
 		return SyncReply(self.myaddr, self.flags & 2)
 
-class DummySyncState(SyncState):
-	def __init__(self):
-		super().__init__(0x7FFF)
-
-	def receive(self, pkt):
-		return True
+class Intellibus:
+	def __init__(self, iface, **kwargs):
+		self.counter = 1
+		self.syncs = {}
+		if 'debug' in kwargs:
+			dbg = kwargs['debug']
+			if type(dbg) is dict:
+				self.debug = dbg
+			elif type(dbg) is tuple or type(dbg) is list:
+				self.debug = dict([(k,None) for k in dbg])
+			elif type(dbg) is str:
+				self.debug = {}
+				for item in dbg.split(','):
+					kv = item.split('=')
+					if len(kv) > 1:
+						self.debug[kv[0]] = kv[1]
+					else:
+						self.debug[kv[0]] = None
+			else:
+				raise TypeError('debug must be a dict, tuple/list, or a string in the format "key[=value],key2[=value2],..."')
+		if type(iface) is str:
+			self.bus = Interface(iface)
+		else:
+			self.bus = iface
+		self.listeners = []
 	
-	def next(self, as_master):
-		return 0
-
-class VirtDevice:
-	def __init__(self, kind, model, serial_no, hdw_conf=0, fw_ver=0):
-		self.addr = None
-		self.sync = DummySyncState()
-		self.kind = kind
-		self.model = model
-		self.serial_no = serial_no
-		self.xmitters = []
-		self.hdw_conf = hdw_conf
-		self.fw_ver = fw_ver
+	def sync(self, addr):
+		if addr not in self.syncs:
+			self.syncs[addr] = SyncState(addr)
+		return self.syncs[addr]
 	
-	def send(self, msg, **kwargs):
+	def send_raw(self, pkt):
+		if 'tx' in self.debug:
+			if 'sync' in self.debug or type(pkt) not in (SyncPing, SyncReply):
+				print('TX: {}'.format(pkt))
+		self.bus.write(pkt)
+	
+	def send(self, dest, src, msg, **kwargs):
 		if type(msg) is Message:
 			msg = msg.payload
 		if 'flags' in kwargs:
 			flags = kwargs['flags']
 		else:
-			flags = self.sync.next(False)
-		pkt = Message(0, self.addr or 0, msg, flags)
+			flags = self.sync(dest if src == 0 else src).next(src == 0)
+		pkt = Message(dest, src, msg, flags)
 		for _ in range(kwargs['count'] if 'count' in kwargs else 6):
-			for x in self.xmitters:
-				x(pkt)
+			self.send_raw(pkt)
 	
-	def receive(self, pkt):
-		if self.sync.receive(pkt):
+	def run(self):
+		self.stop_flag = False
+		while not self.stop_flag:
+			pkt = self.bus.read()
+			isSynced = True
+			doDebugOutput = 'sync' in self.debug and 'rx' in self.debug
 			if type(pkt) is SyncPing:
-				if pkt.addr == self.addr:
-					for x in self.xmitters:
-						x(self.sync.reply())
+				self.sync(pkt.addr).receive(pkt)
+				self.counter = pkt.counter % 0x7F + 1
+			elif type(pkt) is SyncReply:
+				self.sync(pkt.addr).receive(pkt)
 			elif type(pkt) is Message:
-				cmd = pkt.getcmd()
-				arg = pkt.getarg()
-				if cmd == 0xBBC:
-					self.send((0xBB9, self.serial_no + struct.pack('<HHHHH', 0x100, self.model, self.kind, self.hdw_conf, self.fw_ver)))
-				elif cmd == 0xBBA:
-					self.send((0xBBB, arg))
+				if 'rx' in self.debug:
+					doDebugOutput = doDebugOutput or (int(self.debug['rx']) in (pkt.src, pkt.dest))
+				if pkt.dest == 0x7FFF:
+					pass
+				elif 0x7001 <= pkt.dest <= 0x707F:
+					if pkt.dest & 0xFF == self.counter:
+						self.counter = self.counter % 0x7F + 1
+					else:
+						isSynced = False
+				elif pkt.dest == 0:
+					isSynced = self.sync(pkt.src).receive(pkt)
+				else:
+					isSynced = self.sync(pkt.dest).receive(pkt)
+			else:
+				doDebugOutput = True
+
+			for l in self.listeners:
+				l.receive(pkt, isSynced)
+
+			if doDebugOutput:
+				print('RX: {}'.format(pkt))
+	
+	def stop(self):
+		self.stop_flag = True
+	
+	def broadcast(self, msg, **kwargs):
+		if type(msg) is Message:
+			msg = msg.payload
+		pkt = Message(0x7000+self.counter, 0, msg, 0)
+		self.counter = self.counter % 0x7F + 1
+		for _ in range(kwargs['count'] if 'count' in kwargs else 1):
+			self.send_raw(pkt)
+	
+	def reg_listener(self, listener):
+		self.listeners.append(listener)
+	
+	def sync_reply(self, addr):
+		self.send_raw(self.sync(addr).reply())
+
+class VirtDevice:
+	def __init__(self, ibus:Intellibus, kind:int, model:int, serial_no:bytes, hdw_conf:int=0, fw_ver:(int,int)=0):
+		self.addr = 0
+		self.ibus = ibus
+		self.kind = kind
+		self.model = model
+		self.serial_no = serial_no.rjust(6, b'\0')
+		self.hdw_conf = hdw_conf
+		self.fw_ver = bytes(fw_ver)
+		ibus.listeners.append(self)
+	
+	def receive(self, pkt, synced):
+		if type(pkt) is SyncPing:
+			if pkt.addr == self.addr:
+				self.ibus.sync_reply(pkt.addr)
+		elif type(pkt) is Message:
+			cmd = pkt.getcmd()
+			arg = pkt.getarg()
+			if cmd == 0xBBC and self.addr == 0:
+				self.ibus.send(0, self.addr, (0xBB9, self.serial_no + struct.pack('<HHHH', 0x100, self.model, self.kind, self.hdw_conf) + self.fw_ver), count=3)
+			elif cmd == 0xBBA:
+				if arg[:6] == self.serial_no:
 					self.addr = struct.unpack('<H', arg[-2:])[0]
-					self.sync = SyncState(self.addr)
-				elif pkt.dest == self.addr:
-					self.handle_cmd(cmd, arg)
+					self.ibus.send(0, self.addr, (0xBBB, arg), count=3)
+			elif pkt.dest == self.addr:
+				self.handle_cmd(cmd, arg)
 
 	def handle_cmd(cmd, arg):
 		pass
