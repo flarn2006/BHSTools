@@ -57,6 +57,7 @@ small {
 	font-family: monospace;
 	font-size: 19pt;
 	text-align: center;
+	resize: none;
 }
 
 .top .keys {
