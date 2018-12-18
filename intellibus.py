@@ -237,7 +237,7 @@ class Intellibus:
 				self.sync(pkt.addr).receive(pkt)
 			elif type(pkt) is Message:
 				if 'rx' in self.debug:
-					doDebugOutput = doDebugOutput or (int(self.debug['rx']) in (pkt.src, pkt.dest))
+					doDebugOutput = doDebugOutput or (self.debug['rx'] is None) or (int(self.debug['rx']) in (pkt.src, pkt.dest))
 				if pkt.dest == 0x7FFF:
 					pass
 				elif 0x7001 <= pkt.dest <= 0x707F:
@@ -269,40 +269,50 @@ class Intellibus:
 		for _ in range(kwargs['count'] if 'count' in kwargs else 1):
 			self.send_raw(pkt)
 	
-	def reg_listener(self, listener):
+	def add_listener(self, listener):
 		self.listeners.append(listener)
 	
 	def sync_reply(self, addr):
 		self.send_raw(self.sync(addr).reply())
 
 class VirtDevice:
-	def __init__(self, ibus:Intellibus, kind:int, model:int, serial_no:bytes, hdw_conf:int=0, fw_ver:(int,int)=0):
-		self.addr = 0
+	def __init__(self, ibus:Intellibus, kind:int, model:int, serial_no:bytes, hdw_conf:int=0, fw_ver:(int,int)=0, addr:int=None):
+		self.addr = addr
 		self.ibus = ibus
 		self.kind = kind
 		self.model = model
 		self.serial_no = serial_no.rjust(6, b'\0')
 		self.hdw_conf = hdw_conf
 		self.fw_ver = bytes(fw_ver)
-		ibus.listeners.append(self)
+		ibus.add_listener(self)
 	
 	def receive(self, pkt, synced):
 		if type(pkt) is SyncPing:
 			if pkt.addr == self.addr:
 				self.ibus.sync_reply(pkt.addr)
+				self.on_ping()
 		elif type(pkt) is Message:
 			cmd = pkt.getcmd()
 			arg = pkt.getarg()
-			if cmd == 0xBBC and self.addr == 0:
-				self.ibus.send(0, self.addr, (0xBB9, self.serial_no + struct.pack('<HHHH', 0x100, self.model, self.kind, self.hdw_conf) + self.fw_ver), count=3)
+			if (cmd == 0xBB8 and self.addr == pkt.dest) or (cmd == 0xBBC and self.addr is None):
+				self.ibus.send(0, self.addr or 0, (0xBB9, self.serial_no + struct.pack('<HHHH', 0x100, self.model, self.kind, self.hdw_conf) + self.fw_ver), count=3)
 			elif cmd == 0xBBA:
 				if arg[:6] == self.serial_no:
 					self.addr = struct.unpack('<H', arg[-2:])[0]
-					self.ibus.send(0, self.addr, (0xBBB, arg), count=3)
+					self.send(0xBBB, arg, count=3)
 			elif pkt.dest == self.addr:
-				self.handle_cmd(cmd, arg)
+				if cmd == 0xBBF:
+					self.send(0xBC0, b'')
+				elif synced:
+					self.handle_cmd(cmd, arg)
+	
+	def send(self, cmd, arg=b'', **kwargs):
+		self.ibus.send(0, self.addr, (cmd, arg), **kwargs)
 
-	def handle_cmd(cmd, arg):
+	def handle_cmd(self, cmd, arg):
+		pass
+	
+	def on_ping(self):
 		pass
 
 def tohex(data):
