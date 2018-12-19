@@ -1,6 +1,7 @@
 import struct
 from crcmod.predefined import PredefinedCrc
 from serial import Serial
+from sys import stdout
 
 class Packet:
 	def __init__(self, data):
@@ -144,12 +145,8 @@ class SyncState:
 		if type(pkt) is SyncPing:
 			if pkt.addr == self.myaddr:
 				if pkt.flag:
-					if not self.flags & 1:
-						print('setting flag by ping')
 					self.flags |= 1
 				else:
-					if self.flags & 1:
-						print('clearing flag by ping')
 					self.flags &= 2
 			return True
 		elif type(pkt) is SyncReply:
@@ -180,6 +177,10 @@ class Intellibus:
 	def __init__(self, iface, **kwargs):
 		self.counter = 1
 		self.syncs = {}
+		if 'dbgout' in kwargs:
+			self.dbgout = kwargs['dbgout']
+		else:
+			self.dbgout = stdout
 		if 'debug' in kwargs:
 			dbg = kwargs['debug']
 			if type(dbg) is dict:
@@ -210,7 +211,7 @@ class Intellibus:
 	def send_raw(self, pkt):
 		if 'tx' in self.debug:
 			if 'sync' in self.debug or type(pkt) not in (SyncPing, SyncReply):
-				print('TX: {}'.format(pkt))
+				print('TX: {}'.format(pkt), file=self.dbgout)
 		self.bus.write(pkt)
 	
 	def send(self, dest, src, msg, **kwargs):
@@ -256,7 +257,7 @@ class Intellibus:
 				l.receive(pkt, isSynced)
 
 			if doDebugOutput:
-				print('RX: {}'.format(pkt))
+				print('RX: {}'.format(pkt), file=self.dbgout)
 	
 	def stop(self):
 		self.stop_flag = True
