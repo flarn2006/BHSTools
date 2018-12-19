@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 from sys import argv, exit
 from threading import Thread
 from queue import Queue

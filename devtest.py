@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 from intellibus import *
 
 class TestDevice(VirtDevice):
