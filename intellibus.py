@@ -197,6 +197,8 @@ class Intellibus:
 						self.debug[kv[0]] = None
 			else:
 				raise TypeError('debug must be a dict, tuple/list, or a string in the format "key[=value],key2[=value2],..."')
+		else:
+			self.debug = {}
 		if type(iface) is str:
 			self.bus = Interface(iface)
 		else:
