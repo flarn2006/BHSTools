@@ -276,6 +276,23 @@ class Intellibus:
 	def sync_reply(self, addr):
 		self.send_raw(self.sync(addr).reply())
 
+class Listener:
+	def __init__(self, callback, ibus:Intellibus=None):
+		self.callback = callback
+		if ibus is not None:
+			ibus.add_listener(self)
+	
+	def __call__(self, *args):
+		self.callback(*args)
+	
+	def receive(self, pkt, synced):
+		self.callback(pkt, synced)
+
+def add_listener(ibus:Intellibus) -> Listener:
+	def wrapper(f):
+		return Listener(f, ibus)
+	return wrapper
+
 class VirtDevice:
 	def __init__(self, ibus:Intellibus, kind:int, model:int, serial_no:bytes, hdw_conf:int=0, fw_ver:(int,int)=0, addr:int=None):
 		self.addr = addr
