@@ -93,18 +93,16 @@ class Message(Packet):
 	def getarg(self):
 		return self.payload[2:]
 
-class Interface:
-	def __init__(self, port, **kwargs):
-		if 'baudrate' in kwargs:
-			baudrate = kwargs['baudrate']
-		else:
-			baudrate = 38400
-
-		self.serial = Serial(port=port, baudrate=baudrate)
+class BasicInterface:
+	def get_byte(self):
+		raise NotImplementedError(type(self).__name__ + ' does not implement get_byte')
 	
+	def send_bytes(self, data):
+		raise NotImplementedError(type(self).__name__ + ' does not implement send_bytes')
+
 	def read(self):
 		while True:
-			while self.serial.read() != b'\x1e': pass
+			while self.get_byte() != b'\x1e': pass
 			data = b''
 			found_non_1e = False
 			while True:
@@ -130,7 +128,49 @@ class Interface:
 			#	print('crc fail: ' + tohex(data + check))
 	
 	def write(self, packet):
-		self.serial.write(b'\x1e' + bytes(packet).replace(b'\x7d', b'\x7d\x5d').replace(b'\x1e', b'\x7d\x3e'))
+		self.send_bytes(b'\x1e' + bytes(packet).replace(b'\x7d', b'\x7d\x5d').replace(b'\x1e', b'\x7d\x3e'))
+
+class Interface(BasicInterface):
+	def __init__(self, port, baudrate=38400):
+		self.serial = Serial(port=port, baudrate=baudrate)
+	
+	def get_byte(self):
+		return self.serial.read()
+	
+	def send_bytes(self, data):
+		return self.serial.write(data)
+
+class ModemInterface(BasicInterface):
+	# Work in progress
+	def __init__(self, port, baudrate=38400):
+		self.serial = Serial(port=port, baudrate=baudrate)
+		self.connected = False
+		self.so_far = b''
+	
+	def _get_byte_from_modem(self):
+		b = self.serial.read()
+		print(self.connected, b)
+		if self.connected:
+			return b
+		elif len(self.so_far) > 0 and self.so_far[-1] in b'\n\r':
+			if self.so_far[:-1] == b'RING':
+				self.serial.write(b'ATA\r\n')
+			elif self.so_far.startswith(b'CONNECT '):
+				self.connected = True
+			self.so_far = b''
+		self.so_far += b
+		return None
+	
+	def get_byte(self):
+		while True:
+			b = self._get_byte_from_modem()
+			if b is not None:
+				return b
+	
+	def send_bytes(self, data):
+		while not self.connected:
+			self._get_byte_from_modem()
+		self.serial.write(data)
 
 class SyncState:
 	def __init__(self, myaddr, master=False, slave=False):
@@ -227,39 +267,43 @@ class Intellibus:
 		for _ in range(kwargs['count'] if 'count' in kwargs else 6):
 			self.send_raw(pkt)
 	
+	def read(self):
+		pkt = self.bus.read()
+		isSynced = True
+		doDebugOutput = 'sync' in self.debug and 'rx' in self.debug
+		if type(pkt) is SyncPing:
+			self.sync(pkt.addr).receive(pkt)
+			self.counter = pkt.counter % 0x7F + 1
+		elif type(pkt) is SyncReply:
+			self.sync(pkt.addr).receive(pkt)
+		elif type(pkt) is Message:
+			if 'rx' in self.debug:
+				doDebugOutput = doDebugOutput or (self.debug['rx'] is None) or (int(self.debug['rx']) in (pkt.src, pkt.dest))
+			if pkt.dest == 0x7FFF:
+				pass
+			elif 0x7001 <= pkt.dest <= 0x707F:
+				if pkt.dest & 0xFF == self.counter:
+					self.counter = self.counter % 0x7F + 1
+				else:
+					isSynced = False
+			elif pkt.dest == 0:
+				isSynced = self.sync(pkt.src).receive(pkt)
+			else:
+				isSynced = self.sync(pkt.dest).receive(pkt)
+		else:
+			doDebugOutput = True
+
+		if doDebugOutput:
+			print('RX: {}'.format(pkt), file=self.dbgout)
+
+		return pkt, isSynced
+
 	def run(self):
 		self.stop_flag = False
 		while not self.stop_flag:
-			pkt = self.bus.read()
-			isSynced = True
-			doDebugOutput = 'sync' in self.debug and 'rx' in self.debug
-			if type(pkt) is SyncPing:
-				self.sync(pkt.addr).receive(pkt)
-				self.counter = pkt.counter % 0x7F + 1
-			elif type(pkt) is SyncReply:
-				self.sync(pkt.addr).receive(pkt)
-			elif type(pkt) is Message:
-				if 'rx' in self.debug:
-					doDebugOutput = doDebugOutput or (self.debug['rx'] is None) or (int(self.debug['rx']) in (pkt.src, pkt.dest))
-				if pkt.dest == 0x7FFF:
-					pass
-				elif 0x7001 <= pkt.dest <= 0x707F:
-					if pkt.dest & 0xFF == self.counter:
-						self.counter = self.counter % 0x7F + 1
-					else:
-						isSynced = False
-				elif pkt.dest == 0:
-					isSynced = self.sync(pkt.src).receive(pkt)
-				else:
-					isSynced = self.sync(pkt.dest).receive(pkt)
-			else:
-				doDebugOutput = True
-
+			pkt, synced = self.read()
 			for l in self.listeners:
-				l.receive(pkt, isSynced)
-
-			if doDebugOutput:
-				print('RX: {}'.format(pkt), file=self.dbgout)
+				l.receive(pkt, synced)
 	
 	def stop(self):
 		self.stop_flag = True
