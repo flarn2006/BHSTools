@@ -1,3 +1,8 @@
+var display = null;
+var lastCursorPos = null;
+var cursorBlink = true;
+var cursorBlinkIntervalID = null;
+
 function sendKey(code)
 {
 	var xhr = new XMLHttpRequest();
@@ -10,6 +15,16 @@ function sendKey(code)
 	xhr.send(code.toString(16))
 }
 
+function resetCursorBlink()
+{
+	cursorBlink = true;
+	clearInterval(cursorBlinkIntervalID);
+	cursorBlinkIntervalID = setInterval(function() {
+		cursorBlink = !cursorBlink;
+		showDisplay();
+	}, 500);
+}
+
 function updateDisplay()
 {
 	var xhr = new XMLHttpRequest();
@@ -17,18 +32,33 @@ function updateDisplay()
 	xhr.onreadystatechange = function() {
 		if (xhr.readyState === XMLHttpRequest.DONE) {
 			if (xhr.status === 200) {
-				var text = '';
-				for (var i=0; i<64; i+=16) {
-					if (i > 0) {
-						text += '\n'
-					}
-					text += xhr.response.slice(i, i+16)
+				display = JSON.parse(xhr.response);
+				if (lastCursorPos != display.cursor.pos) {
+					lastCursorPos = display.cursor.pos;
+					resetCursorBlink();
 				}
-				document.getElementById('screen').value = text;
+				showDisplay();
 			}
 		}
 	};
 	xhr.send();
+}
+
+function showDisplay()
+{
+	var disp_with_cursor = display.text;
+	if (cursorBlink && display.cursor.visible) {
+		disp_with_cursor = disp_with_cursor.slice(0, display.cursor.pos) + '█' + disp_with_cursor.slice(display.cursor.pos + 1)
+	}
+
+	var text = '';
+	for (var i=0; i<64; i+=16) {
+		if (i > 0) {
+			text += '\n'
+		}
+		text += disp_with_cursor.slice(i, i+16)
+	}
+	document.getElementById('screen').value = text;
 }
 
 window.onload = function() {
@@ -43,4 +73,5 @@ window.onload = function() {
 	});
 
 	setInterval(updateDisplay, 500);
+	resetCursorBlink();
 };

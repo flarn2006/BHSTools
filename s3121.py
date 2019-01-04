@@ -4,6 +4,7 @@ from threading import Thread
 from queue import Queue
 from intellibus import *
 import flask
+import json
 
 if len(argv) != 2:
 	print('Error: You must specify the name of the serial port on the command line.')
@@ -18,7 +19,9 @@ def flask_index():
 @app.route('/display')
 def flask_display():
 	global pgm
-	return (process_display_str(pgm.display), {'Content-Type': 'text/plain'})
+	cpos = 16 * pgm.curY + pgm.curX
+	d = {'text':process_display_str(pgm.display), 'cursor':{'pos':cpos, 'visible':pgm.curVis}}
+	return (json.dumps(d), {'Content-Type': 'application/json'})
 
 @app.route('/key', methods=['POST'])
 def flask_key():
@@ -39,6 +42,7 @@ class Programmer(VirtDevice):
 		self.ping_counter = 0
 		self.curX = 0
 		self.curY = 0
+		self.curVis = False
 		self.keyqueue = Queue()
 
 	def on_ping(self):
@@ -57,7 +61,11 @@ class Programmer(VirtDevice):
 				self.curY = 0
 			else:
 				acct, row, col = struct.unpack('<bbb', arg[:3])
-				row &= 0x7F
+				if col & 0x80:
+					col &= 0x7F
+					self.curVis = True
+				else:
+					self.curVis = False
 				if col > 0:
 					self.curY = col - 1
 				if row > 0:
