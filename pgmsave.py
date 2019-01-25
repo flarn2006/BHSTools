@@ -9,7 +9,7 @@ if len(argv) != 2:
 
 class Dumper(VirtDevice):
 	def __init__(self, ibus):
-		super().__init__(ibus, 5, 3121, fromhex('00 00 FF FF FF FF'), 0, (7,1), 0x7FFE)
+		super().__init__(ibus, 5, 3121, fromhex('00 00 FF FF FF FF'), 0, (7,1), 0x7FF7)
 		self.next = (0x16, b'')
 	
 	def on_ping(self):
