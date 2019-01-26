@@ -74,4 +74,24 @@ window.onload = function() {
 
 	setInterval(updateDisplay, 500);
 	resetCursorBlink();
+
+	var tools = document.getElementById('tools');
+	var links = tools.getElementsByTagName('a');
+	[].forEach.call(links, function(el) {
+		el.addEventListener('click', function() {
+			if (el.classList.contains('selected')) {
+				el.classList.remove('selected');
+				tools.classList.remove('active');
+			} else {
+				tools.classList.add('active');
+				[].forEach.call(links, function(el2) {
+					if (el === el2) {
+						el2.classList.add('selected');
+					} else {
+						el2.classList.remove('selected');
+					}
+				});
+			}
+		});
+	});
 };

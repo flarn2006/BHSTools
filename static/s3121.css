@@ -2,12 +2,15 @@ body {
 	background-color: #111;
 	color: white;
 	font-family: sans-serif;
+	margin: 0.25in;
 }
 
 header {
 	background-color: #0000aa;
 	padding: 0.25in;
 	margin-left: 1in;
+	overflow: hidden;
+	border-radius: 24px;
 }
 
 h1 {
@@ -93,4 +96,63 @@ button small {
 
 .top .keys button, .keys div button:last-child {
 	width: 0.75in;
+}
+
+#tools nav {
+	display: inline-flex;
+	flex-direction: column;
+}
+
+#tools.active nav {
+	display: block;
+}
+
+#tools.active {
+	display: flex;
+	flex-direction: column;
+	position: absolute;
+	left: 4.5in; top: 0;
+	width: calc(100vw - 5in);
+	height: calc(100vh - 0.5in);
+	background-color: #111;
+	padding: 16px;
+}
+
+#tools nav a {
+	display: inline-block;
+	position: relative;
+	background-color: #0000aa;
+	color: white;
+	padding: 12px;
+	border-radius: 12px;
+	text-decoration: none;
+	margin-top: 8px;
+}
+
+#tools.active nav a {
+	padding: 8px 8px 8px 4px;
+	border-bottom-left-radius: 0;
+	border-bottom-right-radius: 0;
+}
+
+#tools.active h2 {
+	display: none;
+}
+
+#tools nav a:hover {
+	text-decoration: underline;
+}
+
+#tools nav a.selected {
+	background-color: blue;
+	font-weight: bold;
+}
+
+#tools iframe {
+	display: none;
+}
+
+#tools.active iframe {
+	display: block;
+	flex-grow: 1;
 }
