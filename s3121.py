@@ -16,8 +16,8 @@ app = flask.Flask(__name__)
 def flask_index():
 	return flask.send_file('static/s3121.html')
 
-@app.route('/display')
-def flask_display():
+@app.route('/status')
+def flask_status():
 	global pgm
 	cpos = 16 * pgm.curY + pgm.curX
 	d = {'text':process_display_str(pgm.display), 'cursor':{'pos':cpos, 'visible':pgm.curVis}}

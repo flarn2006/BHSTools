@@ -28,7 +28,7 @@ function resetCursorBlink()
 function updateDisplay()
 {
 	var xhr = new XMLHttpRequest();
-	xhr.open('GET', '/display');
+	xhr.open('GET', '/status');
 	xhr.onreadystatechange = function() {
 		if (xhr.readyState === XMLHttpRequest.DONE) {
 			if (xhr.status === 200) {
