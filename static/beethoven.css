@@ -1,0 +1,9 @@
+body {
+	background-color: black;
+	color: white;
+}
+
+table.hexdump {
+	font-family: monospace;
+	font-size: 12pt;
+}

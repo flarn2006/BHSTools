@@ -38,6 +38,11 @@ function updateDisplay()
 					resetCursorBlink();
 				}
 				showDisplay();
+				if (display.dl_complete) {
+					document.getElementById('config_rpt').style.display = '';
+				} else {
+					document.getElementById('config_rpt').style.display = 'none';
+				}
 			}
 		}
 	};

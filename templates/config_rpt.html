@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<link rel="stylesheet" href="/static/beethoven.css">
+</head><body>
+	<h1>System Configuration Report</h1>
+	{% for cmd,arg in results %}
+	<section>
+		<h2>{{ util.fmt_16bit_hex(cmd) }} Config Block</h2>
+		<table class="hexdump">
+		{% for row in util.make_hexdump(arg) %}
+			<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>
+		{% endfor %}
+		</table>
+	</section>
+	{% endfor %}
+</body>
+</html>
