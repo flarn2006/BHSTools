@@ -45,7 +45,12 @@ def writestr(dest, index, src):
 	return dest[:index] + src[:len(dest)-index] + dest[index+len(src):]
 
 def process_display_str(text):
-	return text.decode('ascii')
+	try:
+		return text.decode('ascii')
+	except UnicodeDecodeError:
+		out = ''
+		for b in text:
+			out += chr(b) if 32<=b<=126 else '.'
 
 class Programmer(VirtDevice):
 	def __init__(self, ibus):
