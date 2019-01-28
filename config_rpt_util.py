@@ -32,14 +32,18 @@ def describe_config_block(cmd, arg):
 		name = 'Communicator {}'.format(int16(2) + 1)
 	elif cmd == 0xCA:
 		name = 'Account {}'.format(arg[1] + 1)
+	elif cmd == 0xCB:
+		name = 'Keypad {}.{}'.format(arg[1] + 1, arg[2] + 1)
 	elif cmd == 0xCC:
 		name = 'Alarm Output'
 	elif cmd == 0xCE:
 		name = 'Output {}.{}'.format(int16(2), int16(4) + 1)
+	elif cmd == 0xCF:
+		name = 'Area {}.{}'.format(arg[1] + 1, arg[2] + 1)
 	elif cmd == 0xD0:
-		name = 'User {}'.format(int16(2) + 1)
+		name = 'User {}.{}'.format(arg[1] + 1, int16(2) + 1)
 	elif cmd == 0xD1:
-		name = 'Zone {}'.format(arg[3] + 1)
+		name = 'Zone {}.{}.{}'.format(arg[1] + 1, arg[2] + 1, arg[3] + 1)
 	elif cmd == 0xD3:
 		name = 'Device {0} (0x{0:04X})'.format(int16(18))
 	elif cmd == 0xD5:
