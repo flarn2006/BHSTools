@@ -36,12 +36,6 @@ def flask_start_download():
 	dl.start_download()
 	return 'Download started'
 
-@app.route('/resume_download', methods=['POST'])
-def flask_resume_download():
-	global dl
-	dl.resume_download()
-	return 'Download resumed'
-
 @app.route('/config_rpt')
 def flask_config_rpt():
 	global dl
@@ -108,9 +102,6 @@ class Downloader(VirtDevice):
 		self.results = []
 		self.complete = False
 	
-	def resume_download(self):
-		self.next = (0x14, b'')
-		
 	def on_ping(self):
 		if self.next is not None:
 			self.send(self.next[0], self.next[1])
