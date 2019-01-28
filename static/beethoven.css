@@ -7,3 +7,17 @@ table.hexdump {
 	font-family: monospace;
 	font-size: 12pt;
 }
+
+#blocks li {
+	display: inline-block;
+	border: 2px solid blue;
+	padding: 6px;
+	margin: 4px;
+	font-size: 10pt;
+	font-family: sans-serif;
+	border-radius: 4px;
+}
+
+p.installer {
+	font-size: 16pt;
+}

@@ -36,6 +36,12 @@ def flask_start_download():
 	dl.start_download()
 	return 'Download started'
 
+@app.route('/download_status')
+def flask_download_status():
+	global dl
+	blocks = [config_rpt_util.describe_config_block(c,a) for c,a in dl.results]
+	return (json.dumps({'icode':dl.icode, 'blocks':blocks}), {'Content-Type': 'application/json'})
+
 @app.route('/config_rpt')
 def flask_config_rpt():
 	global dl
@@ -101,11 +107,13 @@ class Downloader(VirtDevice):
 		self.next = None
 		self.results = []
 		self.complete = False
+		self.icode = None
 	
 	def start_download(self):
 		self.next = (0x16, b'')
 		self.results = []
 		self.complete = False
+		self.icode = None
 	
 	def on_ping(self):
 		if self.next is not None:
@@ -118,7 +126,9 @@ class Downloader(VirtDevice):
 		elif 0xC8 <= cmd <= 0xDA:
 			if cmd == 0xD7:
 				try:
-					icode = arg[0x1D:0x25].rstrip(b'\x00').decode('ascii')
+					icode = arg[0x1D:0x25].decode('ascii') + '\0'
+					icode = icode[:icode.find('\0')]
+					self.icode = icode
 					if len(icode) > 0:
 						print('Found installer code: ' + icode)
 					else:
