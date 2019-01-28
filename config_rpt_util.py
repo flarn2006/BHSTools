@@ -34,6 +34,8 @@ def describe_config_block(cmd, arg):
 		name = 'Account {}'.format(arg[1] + 1)
 	elif cmd == 0xCC:
 		name = 'Alarm Output'
+	elif cmd == 0xCE:
+		name = 'Output {}.{}'.format(int16(2), int16(4) + 1)
 	elif cmd == 0xD0:
 		name = 'User {}'.format(int16(2) + 1)
 	elif cmd == 0xD1:
@@ -41,7 +43,7 @@ def describe_config_block(cmd, arg):
 	elif cmd == 0xD3:
 		name = 'Device {0} (0x{0:04X})'.format(int16(18))
 	elif cmd == 0xD5:
-		name = 'Input'
+		name = 'Input {}.{}'.format(int16(4), int16(2) + 1)
 	elif cmd == 0xD7:
 		name = 'Installer User'
 	elif cmd == 0xDA:
