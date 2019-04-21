@@ -32,6 +32,15 @@ if is_direct_exec:
 fh = fromhex
 th = tohex
 
+def send(dest, cmd, arg):
+	if type(arg) == str:
+		arg = fh(arg)
+	if dest == 0 and cmd == 0x2F:
+		raise ValueError('And risk bricking the panel? If you really want to, do bus.send(0, 0x7FFE, (0x2F, {})).'.format(repr(arg)))
+	else:
+		src = 0x7FFE if dest == 0 else 0
+		bus.send(dest, src, (cmd, arg))
+
 bus = Intellibus(argv[2], debug='tx,rx', dbgout=open('testbed/log.txt', 'a'))
 thread = Thread(target=bus.run)
 thread.start()
