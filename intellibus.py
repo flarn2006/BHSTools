@@ -254,6 +254,7 @@ class Intellibus:
 		if 'tx' in self.debug:
 			if 'sync' in self.debug or type(pkt) not in (SyncPing, SyncReply):
 				print('TX: {}'.format(pkt), file=self.dbgout)
+				self.dbgout.flush()
 		self.bus.write(pkt)
 	
 	def send(self, dest, src, msg, **kwargs):
@@ -295,6 +296,7 @@ class Intellibus:
 
 		if doDebugOutput:
 			print('RX: {}'.format(pkt), file=self.dbgout)
+			self.dbgout.flush()
 
 		return pkt, isSynced
 

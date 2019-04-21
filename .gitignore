@@ -1,3 +1,5 @@
 __pycache__
 *.swp
 *.pgm
+testbed/log.txt
+testbed/port.txt

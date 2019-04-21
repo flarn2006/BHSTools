@@ -1,0 +1,5 @@
+screen -t "Python" sh testbed/left.sh
+split -v
+focus
+screen -t "Log" tail -f testbed/log.txt
+focus
