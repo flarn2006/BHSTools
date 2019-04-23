@@ -6,10 +6,7 @@ import intellibus.devices as devices
 import flask
 import json
 import config_rpt_util
-
-if len(argv) != 2:
-	print('Error: You must specify the name of the serial port on the command line.')
-	exit(255)
+import logging
 
 app = flask.Flask(__name__)
 
@@ -105,14 +102,26 @@ class Downloader(VirtDevice):
 
 webthread = Thread(target=app.run, kwargs={'host':'0.0.0.0', 'port':3121})
 
-try:
-	bus = Intellibus(argv[1], debug='rx,tx')
+def start(bus):
+	global pgm, dl, kp, webthread
+
+	logging.getLogger('werkzeug').setLevel(logging.ERROR)
+
 	pgm = devices.Programmer(bus)
 	dl = Downloader(bus)
 	kp = devices.IconKeypad(bus, fromhex('13 37 1D EC 0D ED'), 0x1337, (0,0))
 	webthread.start()
-	bus.run()
-except KeyboardInterrupt:
-	pass
-finally:
-	webthread.join()
+
+if __name__ == '__main__':
+	if len(argv) != 2:
+		print('Error: You must specify the name of the serial port on the command line.')
+		exit(255)
+
+	try:
+		bus = Intellibus(argv[1], debug='rx,tx')
+		start(bus)
+		bus.run()
+	except KeyboardInterrupt:
+		pass
+	finally:
+		webthread.join()

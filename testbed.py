@@ -41,6 +41,16 @@ def send(dest, cmd, arg):
 		src = 0x7FFE if dest == 0 else 0
 		bus.send(dest, src, (cmd, arg))
 
+s3121_running = False
+
+def s3121_start():
+	global s3121_running
+	if s3121_running:
+		print('Already running!')
+	else:
+		__import__('s3121').start(bus)
+		s3121_running = True
+
 bus = Intellibus(argv[2], debug='tx,rx', dbgout=open('testbed/log.txt', 'a'))
 thread = Thread(target=bus.run)
 thread.start()
