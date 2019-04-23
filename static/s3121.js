@@ -33,6 +33,7 @@ function updateDisplay()
 		if (xhr.readyState === XMLHttpRequest.DONE) {
 			if (xhr.status === 200) {
 				display = JSON.parse(xhr.response);
+				document.getElementById('docview').contentWindow.postMessage(display, '*');
 				if (lastCursorPos != display.cursor.pos) {
 					lastCursorPos = display.cursor.pos;
 					resetCursorBlink();
