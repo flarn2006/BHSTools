@@ -366,7 +366,7 @@ class VirtDevice:
 				if arg[:6] == self.serial_no:
 					self.addr = struct.unpack('<H', arg[-2:])[0]
 					self.send(0xBBB, arg, count=3)
-			elif pkt.dest == self.addr:
+			elif pkt.dest == self.addr or 0x7000 <= pkt.dest <= 0x70FF:
 				if cmd == 0xBBF:
 					self.send(0xBC0, b'')
 				elif synced:
