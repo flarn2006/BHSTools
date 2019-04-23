@@ -1,0 +1,85 @@
+body {
+	background-color: black;
+	color: white;
+}
+
+header {
+	background-color: rgba(0, 0, 192, 0.9);
+	font-family: monospace;
+	font-weight: bold;
+}
+
+header > * {
+	display: inline-block;
+	padding: 4px;
+	margin: 4px;
+}
+
+header > *:nth-child(2n+1) {
+	background-color: #000080;
+}
+
+input[type="checkbox"] {
+	vertical-align: middle;
+}
+
+#keypad {
+	position: relative;
+	top: -40px;
+	width: 760px; height: 634px;
+	background-image: url(keypad.png);
+	z-index: -1;
+}
+
+#on_led {
+	position: absolute;
+	left: 147px; top: 191px;
+	width: 14px; height: 14px;
+	border: 3px solid red;
+	background-color: #ff8080;
+	box-shadow: 0 0 4px red;
+	border-radius: 6px;
+	box-sizing: border-box;
+}
+
+#screen {
+	position: absolute;
+	left: 251px; top: 119px;
+	width: 402px; height: 107px;
+	background-color: #00e357;
+	border: 1px solid #00ab42;
+	box-sizing: border-box;
+	padding: 1px 3px;
+	color: black;
+	font-family: sans-serif;
+	font-size: 14px;
+	font-weight: bold;
+	text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
+}
+
+#numeric {
+	float: left;
+	margin: 2px 4px;
+	width: 70px;
+	height: 30px;
+	transform: skew(-7deg, 0);
+	background-color: black;
+}
+
+#screen > div {
+	display: flex;
+}
+
+#screen > div > * {
+	flex-grow: 1;
+	display: inline-block;
+	text-align: center;
+}
+
+#screen > div > *:first-child {
+	text-align: left;
+}
+
+#screen > div > *:last-child {
+	text-align: right;
+}
