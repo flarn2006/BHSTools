@@ -32,7 +32,7 @@ if is_direct_exec:
 fh = fromhex
 th = tohex
 
-def send(dest, cmd, arg):
+def send(dest, cmd, arg=b''):
 	if type(arg) == str:
 		arg = fh(arg)
 	if dest == 0 and cmd == 0x2F:
@@ -40,6 +40,20 @@ def send(dest, cmd, arg):
 	else:
 		src = 0x7FFE if dest == 0 else 0
 		bus.send(dest, src, (cmd, arg))
+
+class TestDevice(VirtDevice):
+	def __init__(self, ibus, kind, model=3999):
+		super().__init__(ibus, kind, model, b'123456', 0, (0,0))
+		self.replymap = {}
+	
+	def handle_cmd(self, cmd, arg):
+		if cmd in self.replymap:
+			reply = self.replymap[cmd]
+			if type(reply) is int:
+				reply = (reply, arg)
+			elif type(reply) is not tuple:
+				reply = reply(cmd, arg)
+			self.send(reply[0], reply[1])
 
 s3121_running = False
 

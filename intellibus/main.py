@@ -2,6 +2,7 @@ import struct
 from crcmod.predefined import PredefinedCrc
 from serial import Serial
 from sys import stdout
+from queue import Queue
 
 class Packet:
 	def __init__(self, data):
@@ -305,7 +306,10 @@ class Intellibus:
 		while not self.stop_flag:
 			pkt, synced = self.read()
 			for l in self.listeners:
-				l.receive(pkt, synced)
+				try:
+					l.receive(pkt, synced)
+				except Exception as ex:
+					print('{} threw {}'.format(l, ex))
 	
 	def stop(self):
 		self.stop_flag = True
@@ -350,36 +354,44 @@ class VirtDevice:
 		self.serial_no = serial_no.rjust(6, b'\0')
 		self.hdw_conf = hdw_conf
 		self.fw_ver = bytes(fw_ver)
+		self.outqueue = Queue()
+		self.active = True
 		ibus.add_listener(self)
 	
 	def receive(self, pkt, synced):
-		if type(pkt) is SyncPing:
-			if pkt.addr == self.addr:
-				self.ibus.sync_reply(pkt.addr)
-				self.on_ping()
-		elif type(pkt) is Message:
-			cmd = pkt.getcmd()
-			arg = pkt.getarg()
-			if (cmd == 0xBB8 and self.addr == pkt.dest) or (cmd == 0xBBC and self.addr is None):
-				self.ibus.send(0, self.addr or 0, (0xBB9, self.serial_no + struct.pack('<HHHH', 0x100, self.model, self.kind, self.hdw_conf) + self.fw_ver), count=3)
-			elif cmd == 0xBBA:
-				if arg[:6] == self.serial_no:
-					self.addr = struct.unpack('<H', arg[-2:])[0]
-					self.send(0xBBB, arg, count=3)
-			elif pkt.dest == self.addr or 0x7000 <= pkt.dest <= 0x70FF:
-				if cmd == 0xBBF:
-					self.send(0xBC0, b'')
-				elif synced:
-					self.handle_cmd(cmd, arg)
+		if self.active:
+			if type(pkt) is SyncPing:
+				if pkt.addr == self.addr:
+					self.ibus.sync_reply(pkt.addr)
+					self.on_ping()
+			elif type(pkt) is Message:
+				cmd = pkt.getcmd()
+				arg = pkt.getarg()
+				if (cmd == 0xBB8 and self.addr == pkt.dest) or (cmd == 0xBBC and self.addr is None):
+					self.ibus.send(0, self.addr or 0, (0xBB9, self.serial_no + struct.pack('<HHHH', 0x100, self.model, self.kind, self.hdw_conf) + self.fw_ver), count=3)
+				elif cmd == 0xBBA:
+					if arg[:6] == self.serial_no:
+						self.addr = struct.unpack('<H', arg[-2:])[0]
+						self.send_now(0xBBB, arg, count=3)
+				elif pkt.dest == self.addr or 0x7000 <= pkt.dest <= 0x70FF:
+					if cmd == 0xBBF:
+						self.send(0xBC0, b'')
+					elif synced:
+						self.handle_cmd(cmd, arg)
+	
+	def send_now(self, cmd, arg=b'', **kwargs):
+		self.ibus.send(0, self.addr, (cmd, arg), **kwargs)
 	
 	def send(self, cmd, arg=b'', **kwargs):
-		self.ibus.send(0, self.addr, (cmd, arg), **kwargs)
+		self.outqueue.put((cmd, arg, kwargs))
 
 	def handle_cmd(self, cmd, arg):
 		pass
 	
 	def on_ping(self):
-		pass
+		while not self.outqueue.empty():
+			cmd, arg, kwargs = self.outqueue.get()
+			self.send_now(cmd, arg, **kwargs)
 
 def tohex(data):
 	return ' '.join(['{:02X}'.format(b) for b in data])

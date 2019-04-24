@@ -75,7 +75,7 @@ class Downloader(VirtDevice):
 	
 	def on_ping(self):
 		if self.next is not None:
-			self.send(self.next[0], self.next[1])
+			self.send_now(self.next[0], self.next[1])
 			self.next = None
 	
 	def handle_cmd(self, cmd, arg):
