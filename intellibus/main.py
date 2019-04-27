@@ -81,7 +81,7 @@ class Message(Packet):
 		self.n = n
 	
 	def __repr__(self):
-		return '<({:02b}) {:04X}->{:04X}: {}>'.format(self.flags, self.src, self.dest, tohex(self.payload))
+		return '<({:02b}) {:04X}->{:04X}:{:5} [ {} ] >'.format(self.flags, self.src, self.dest, self.getcmd(), tohex(self.getarg()))
 	
 	def gen_data(self):
 		dest_field = (self.dest | 0x8000) if (self.flags & 1) else self.dest
