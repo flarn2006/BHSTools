@@ -27,8 +27,16 @@ if is_direct_exec:
 		print('If this message is displayed in error, run {} directly.'.format(path))
 		exit(254)
 
+s3121_running = False
 
-# Set up some shortcuts for common functions
+def s3121_start():
+	global s3121_running
+	if s3121_running:
+		print('Already running!')
+	else:
+		__import__('s3121').start(bus)
+		s3121_running = True
+
 fh = fromhex
 th = tohex
 
@@ -55,17 +63,20 @@ class TestDevice(VirtDevice):
 				reply = reply(cmd, arg)
 			self.send(reply[0], reply[1])
 
-s3121_running = False
-
-def s3121_start():
-	global s3121_running
-	if s3121_running:
-		print('Already running!')
-	else:
-		__import__('s3121').start(bus)
-		s3121_running = True
+def onRX(cmd, arg):
+	pass
 
 bus = Intellibus(argv[2], debug='tx,rx', dbgout=open('testbed/log.txt', 'a'))
+
+@add_listener(bus)
+def _(pkt, synced):
+	if synced and type(pkt) is Message:
+		onRX(pkt.getcmd(), pkt.getarg())
+
+# Add your own stuff below this line
+
+
+
 thread = Thread(target=bus.run)
 thread.start()
 
