@@ -1,3 +1,8 @@
+@font-face {
+	font-family: Repetition;
+	src: url(repet___.ttf);
+}
+
 body {
 	background-color: #111;
 	color: white;
@@ -11,6 +16,17 @@ header {
 	margin-left: 1in;
 	overflow: hidden;
 	border-radius: 24px;
+}
+
+footer {
+	position: fixed;
+	left: 16px; bottom: 8px;
+	font-size: 10pt;
+	z-index: -1;
+}
+
+a {
+	color: cyan;
 }
 
 h1 {
@@ -57,8 +73,8 @@ small {
 	border: 0.25in inset #aaa;
 	border-radius: 0.0625in;
 	background-color: #00e357;
-	font-family: monospace;
-	font-size: 19pt;
+	font-family: Repetition, monospace;
+	font-size: 20pt;
 	text-align: center;
 	resize: none;
 }
