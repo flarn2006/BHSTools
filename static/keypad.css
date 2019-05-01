@@ -62,8 +62,10 @@ input[type="checkbox"] {
 	margin: 2px 4px;
 	width: 70px;
 	height: 30px;
-	transform: skew(-7deg, 0);
-	background-color: black;
+}
+
+#numeric > object {
+	width: 100%; height: 100%;
 }
 
 #screen > div {
