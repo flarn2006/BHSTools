@@ -110,7 +110,7 @@ def start(bus):
 	pgm = devices.Programmer(bus)
 	dl = Downloader(bus)
 	kp = devices.IconKeypad(bus, fromhex('13 37 1D EC 0D ED'), 0x1337, (0,0))
-	kp.active = False
+	kp.addr = 0x7FFE
 	webthread.start()
 
 if __name__ == '__main__':
