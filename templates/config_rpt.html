@@ -3,10 +3,12 @@
 <head>
 	<meta charset="utf-8">
 	<link rel="stylesheet" href="/static/beethoven.css">
+	<script src="/static/config_rpt.js"></script>
 </head><body>
 	<h1>System Configuration Report</h1>
+	<button onclick="export_json()">Export as JSON...</button>
 	{% for cmd,arg in results %}
-	<section>
+	<section data-cmd="{{ cmd }}" data-arg="{{ b64encode(arg).decode('ascii') }}">
 		<h2>{{ util.describe_config_block(cmd, arg) }}</h2>
 		<table class="hexdump">
 		{% for row in util.make_hexdump(arg) %}

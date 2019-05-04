@@ -7,6 +7,7 @@ import flask
 import json
 import config_rpt_util
 import logging
+from base64 import b64encode
 
 app = flask.Flask(__name__)
 
@@ -49,7 +50,7 @@ def flask_download_status():
 @app.route('/config_rpt')
 def flask_config_rpt():
 	global dl
-	return flask.render_template('config_rpt.html', results=dl.results, util=config_rpt_util)
+	return flask.render_template('config_rpt.html', results=dl.results, util=config_rpt_util, b64encode=b64encode)
 
 def process_display_str(text):
 	try:
