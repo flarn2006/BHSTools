@@ -3,6 +3,7 @@ import os
 from sys import argv, exit
 from threading import Thread
 from intellibus import *
+from time import sleep
 
 try:
 	is_direct_exec = (argv[1] != '-i')
@@ -40,13 +41,14 @@ def s3121_start():
 fh = fromhex
 th = tohex
 
-def send(dest, cmd, arg=b''):
+def send(dest, cmd, arg=b'', src=None):
 	if type(arg) == str:
 		arg = fh(arg)
 	if dest == 0 and cmd == 0x2F:
 		raise ValueError('And risk bricking the panel? If you really want to, do bus.send(0, 0x7FFE, (0x2F, {})).'.format(repr(arg)))
 	else:
-		src = 0x7FFE if dest == 0 else 0
+		if src is None:
+			src = 0x7FFE if dest == 0 else 0
 		bus.send(dest, src, (cmd, arg))
 
 class TestDevice(VirtDevice):
@@ -63,15 +65,35 @@ class TestDevice(VirtDevice):
 				reply = reply(cmd, arg)
 			self.send(reply[0], reply[1])
 
-def onRX(cmd, arg):
-	pass
+onRXlist={}
+
+def onRX(cmd):
+	def wrapper(f):
+		onRXlist[cmd] = f
+	return wrapper
+
+def hexdump(data):
+	if type(data) is int:
+		data = last[data]
+
+	for i in range(0, len(data), 16):
+		row = data[i:i+16]
+		asc = ''.join([chr(b) if chr(b).isprintable() else '.' for b in row])
+		print('{:04X}:  {:47s}  |{:16s}|'.format(i, tohex(row), asc))
+
+hd = hexdump
 
 bus = Intellibus(argv[2], debug='tx,rx', dbgout=open('testbed/log.txt', 'a'))
+last={}
 
 @add_listener(bus)
 def _(pkt, synced):
-	if synced and type(pkt) is Message:
-		onRX(pkt.getcmd(), pkt.getarg())
+	if type(pkt) is Message:
+		cmd, arg = pkt.getcmd(), pkt.getarg()
+		if synced:
+			if cmd in onRXlist:
+				onRXlist[cmd](arg)
+		last[cmd] = arg
 
 # Add your own stuff below this line
 
@@ -80,4 +102,13 @@ def _(pkt, synced):
 thread = Thread(target=bus.run)
 thread.start()
 
+print('Send messages using send(dest, cmd[, arg]).')
+print('To access received data, do last[cmd]. E.g. last[200] to receive the uploaded panel config.')
+print('')
+print('Or you can script responses to commands like this:')
+print('')
+print('    @onRX(cmd)')
+print('    def func(arg):')
+print('        #write code here')
+print('')
 print('Press Ctrl+A, \\ to quit.')
