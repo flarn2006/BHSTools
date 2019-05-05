@@ -87,7 +87,7 @@ bus = Intellibus(argv[2], debug='tx,rx', dbgout=open('testbed/log.txt', 'a'))
 last={}
 
 @add_listener(bus)
-def _(pkt, synced):
+def onRXsupp(pkt, synced):
 	if type(pkt) is Message:
 		cmd, arg = pkt.getcmd(), pkt.getarg()
 		if synced:
