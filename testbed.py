@@ -81,6 +81,16 @@ def hexdump(data):
 		asc = ''.join([chr(b) if chr(b).isprintable() else '.' for b in row])
 		print('{:04X}:  {:47s}  |{:16s}|'.format(i, tohex(row), asc))
 
+def poke(data, addr, new):
+	if type(data) is int:
+		data = last[data]
+	if type(new) is int:
+		new = bytes([new])
+	return data[:addr] + new + data[addr+len(new):]
+
+def dlpoke(cmd, addr, new):
+	send(0, cmd, poke(cmd, addr, new))
+
 hd = hexdump
 
 bus = Intellibus(argv[2], debug='tx,rx', dbgout=open('testbed/log.txt', 'a'))
