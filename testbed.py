@@ -1,9 +1,12 @@
 #!/usr/bin/python3
 import os
-from sys import argv, exit
+from sys import argv, exit, stdout
 from threading import Thread
 from intellibus import *
 from time import sleep
+from base64 import b64decode
+from config_rpt_util import describe_config_block
+import json
 
 try:
 	is_direct_exec = (argv[1] != '-i')
@@ -90,6 +93,37 @@ def poke(data, addr, new):
 
 def dlpoke(cmd, addr, new):
 	send(0, cmd, poke(cmd, addr, new))
+
+def upload_from_json(filename):
+	with open(filename, 'r') as f:
+		j = json.load(f)
+	
+	if type(j) is list:
+		j = j[0]
+	
+	if j['version'] == 0:
+		count = len(j['data'])
+		n = 0
+		print('Starting upload of {} data items in 2 seconds.'.format(count))
+		sleep(1) #the rest of the delay is in the loop
+		for item in j['data']:
+			sleep(1)
+			n += 1
+			arg = b64decode(item['arg'])
+			print('({} of {}) Uploading {}...'.format(n, count, describe_config_block(item['cmd'], arg)))
+			send(0, item['cmd'], arg)
+	
+	try:
+		stdout.write('\a')
+		for i in range(30):
+			stdout.write('\rUpload complete. Restarting panel in 30 seconds... (press Ctrl+C to abort)')
+			stdout.flush()
+			sleep(1)
+		print('\nPanel will now restart.')
+		send(0, 4002, '40')
+	except KeyboardInterrupt:
+		print('\nPanel restart aborted.')
+		print('Some uploaded programming may not take effect until you manually power cycle the panel.')
 
 hd = hexdump
 
