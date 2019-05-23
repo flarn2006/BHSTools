@@ -141,38 +141,6 @@ class Interface(BasicInterface):
 	def send_bytes(self, data):
 		return self.serial.write(data)
 
-class ModemInterface(BasicInterface):
-	# Work in progress
-	def __init__(self, port, baudrate=38400):
-		self.serial = Serial(port=port, baudrate=baudrate)
-		self.connected = False
-		self.so_far = b''
-	
-	def _get_byte_from_modem(self):
-		b = self.serial.read()
-		print(self.connected, b)
-		if self.connected:
-			return b
-		elif len(self.so_far) > 0 and self.so_far[-1] in b'\n\r':
-			if self.so_far[:-1] == b'RING':
-				self.serial.write(b'ATA\r\n')
-			elif self.so_far.startswith(b'CONNECT '):
-				self.connected = True
-			self.so_far = b''
-		self.so_far += b
-		return None
-	
-	def get_byte(self):
-		while True:
-			b = self._get_byte_from_modem()
-			if b is not None:
-				return b
-	
-	def send_bytes(self, data):
-		while not self.connected:
-			self._get_byte_from_modem()
-		self.serial.write(data)
-
 class SyncState:
 	def __init__(self, myaddr, master=False, slave=False):
 		self.flags = 0
@@ -181,6 +149,15 @@ class SyncState:
 			self.flags |= 2
 		if slave:
 			self.flags |= 1
+	
+	def check(self, pkt):
+		if type(pkt) is Message:
+			if pkt.src == self.myaddr:
+				return self.flags ^ pkt.flags == 1
+			elif pkt.dest == self.myaddr:
+				return self.flags ^ pkt.flags == 2
+		else:
+			return True
 	
 	def receive(self, pkt):
 		if type(pkt) is SyncPing:
@@ -198,11 +175,7 @@ class SyncState:
 					self.flags &= 1
 			return True
 		elif type(pkt) is Message:
-			accept = True
-			if pkt.src == self.myaddr:
-				accept = (self.flags ^ pkt.flags == 1)
-			elif pkt.dest == self.myaddr:
-				accept = (self.flags ^ pkt.flags == 2)
+			accept = self.check(pkt)
 			if accept:
 				self.flags = pkt.flags
 			return accept
@@ -214,23 +187,17 @@ class SyncState:
 	def reply(self):
 		return SyncReply(self.myaddr, self.flags & 2)
 
-class Intellibus:
-	def __init__(self, iface, **kwargs):
-		self.counter = 1
-		self.syncs = {}
-		if 'dbgout' in kwargs:
-			self.dbgout = kwargs['dbgout']
-		else:
-			self.dbgout = stdout
-		if 'debug' in kwargs:
-			dbg = kwargs['debug']
-			if type(dbg) is dict:
-				self.debug = dbg
-			elif type(dbg) is tuple or type(dbg) is list:
-				self.debug = dict([(k,None) for k in dbg])
-			elif type(dbg) is str:
+class Connection:
+	def __init__(self, iface, debug=None, dbgout=stdout):
+		self.dbgout = dbgout
+		if debug is not None:
+			if type(debug) is dict:
+				self.debug = debug
+			elif type(debug) is tuple or type(debug) is list:
+				self.debug = dict([(k,None) for k in debug])
+			elif type(debug) is str:
 				self.debug = {}
-				for item in dbg.split(','):
+				for item in debug.split(','):
 					kv = item.split('=')
 					if len(kv) > 1:
 						self.debug[kv[0]] = kv[1]
@@ -240,6 +207,26 @@ class Intellibus:
 				raise TypeError('debug must be a dict, tuple/list, or a string in the format "key[=value],key2[=value2],..."')
 		else:
 			self.debug = {}
+	
+	def should_output_debug(self, pkt, outgoing):
+		if outgoing:
+			return 'tx' in self.debug
+		else:
+			return self.is_synced(pkt) and 'rx' in self.debug
+	
+	def output_debug(self, pkt, outgoing):
+		if self.should_output_debug(pkt, outgoing):
+			print('{}: {}'.format('TX' if outgoing else 'RX', pkt), file=self.dbgout)
+			self.dbgout.flush()
+	
+	def is_synced(self, pkt):
+		return True
+
+class Intellibus(Connection):
+	def __init__(self, iface, **kwargs):
+		super().__init__(iface, **kwargs)
+		self.counter = 1
+		self.syncs = {}
 		if type(iface) is str:
 			self.bus = Interface(iface)
 		else:
@@ -250,12 +237,19 @@ class Intellibus:
 		if addr not in self.syncs:
 			self.syncs[addr] = SyncState(addr)
 		return self.syncs[addr]
+
+	def should_output_debug(self, pkt, outgoing):
+		if not super().should_output_debug(pkt, outgoing):
+			return False
+		elif type(pkt) in (SyncPing, SyncReply) and 'sync' not in self.debug:
+			return False
+		elif outgoing:
+			return True
+		else:
+			return self.debug['rx'] is None or int(self.debug['rx']) in (pkt.src, pkt.dest)
 	
 	def send_raw(self, pkt):
-		if 'tx' in self.debug:
-			if 'sync' in self.debug or type(pkt) not in (SyncPing, SyncReply):
-				print('TX: {}'.format(pkt), file=self.dbgout)
-				self.dbgout.flush()
+		self.output_debug(pkt, True)
 		self.bus.write(pkt)
 	
 	def send(self, dest, src, msg, **kwargs):
@@ -269,35 +263,38 @@ class Intellibus:
 		for _ in range(kwargs['count'] if 'count' in kwargs else 6):
 			self.send_raw(pkt)
 	
+	def is_synced(self, pkt):
+		if type(pkt) is Message:
+			if pkt.dest == 0x7FFF:
+				return True
+			elif pkt.dest == 0:
+				return self.sync(pkt.src).check(pkt)
+			elif 0x7001 <= pkt.dest <= 0x707F:
+				return pkt.dest & 0xFF == self.counter
+			else:
+				return self.sync(pkt.dest).check(pkt)
+		else:
+			return True
+	
 	def read(self):
 		pkt = self.bus.read()
+		self.output_debug(pkt, False)
 		isSynced = True
-		doDebugOutput = 'sync' in self.debug and 'rx' in self.debug
 		if type(pkt) is SyncPing:
 			self.sync(pkt.addr).receive(pkt)
 			self.counter = pkt.counter % 0x7F + 1
 		elif type(pkt) is SyncReply:
 			self.sync(pkt.addr).receive(pkt)
 		elif type(pkt) is Message:
-			if 'rx' in self.debug:
-				doDebugOutput = doDebugOutput or (self.debug['rx'] is None) or (int(self.debug['rx']) in (pkt.src, pkt.dest))
-			if pkt.dest == 0x7FFF:
-				pass
-			elif 0x7001 <= pkt.dest <= 0x707F:
+			if 0x7001 <= pkt.dest <= 0x707F:
 				if pkt.dest & 0xFF == self.counter:
 					self.counter = self.counter % 0x7F + 1
 				else:
 					isSynced = False
 			elif pkt.dest == 0:
 				isSynced = self.sync(pkt.src).receive(pkt)
-			else:
+			elif pkt.dest != 0x7FFF:
 				isSynced = self.sync(pkt.dest).receive(pkt)
-		else:
-			doDebugOutput = True
-
-		if doDebugOutput:
-			print('RX: {}'.format(pkt), file=self.dbgout)
-			self.dbgout.flush()
 
 		return pkt, isSynced
 
