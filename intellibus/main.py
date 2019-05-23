@@ -187,11 +187,11 @@ class Connection:
 	
 	def should_output_debug(self, pkt, outgoing):
 		ptype = self.packet_type(pkt)
-		if ptype == 'msg' and self.is_synced(pkt):
+		if ptype == 'msg':
 			if outgoing:
 				return 'tx' in self.debug
 			else:
-				return 'rx' in self.debug
+				return 'rx' in self.debug and self.is_synced(pkt)
 		elif ptype == 'sync':
 			return 'sync' in self.debug
 		else:
@@ -215,6 +215,10 @@ class Connection:
 		pkt = self.decode_packet(self.bus.read())
 		self.output_debug(pkt, False)
 		return pkt, self.is_synced(pkt)
+
+	def send_raw(self, pkt):
+		self.output_debug(pkt, True)
+		self.bus.write(pkt)
 
 	def run(self):
 		self.stop_flag = False
@@ -253,10 +257,6 @@ class Intellibus(Connection):
 			return True
 		else:
 			return self.debug['rx'] is None or int(self.debug['rx']) in (pkt.src, pkt.dest)
-	
-	def send_raw(self, pkt):
-		self.output_debug(pkt, True)
-		self.bus.write(pkt)
 	
 	def send(self, dest, src, msg, **kwargs):
 		if type(msg) is Message:
