@@ -21,29 +21,6 @@ class Packet:
 	def __repr__(self):
 		return '<{}: {}>'.format(type(self).__name__, tohex(self.gen_data()))
 
-	def decode(self):
-		data = self.gen_data()
-		if len(data) == 2:
-			(addr,) = struct.unpack('<H', data)
-			return SyncReply(addr & 0x7FFF, 1 if addr & 0x8000 else 0)
-		elif len(data) == 3:
-			addr, n = struct.unpack('<HB', data)
-			return SyncPing(addr & 0x7FFF, 1 if addr & 0x8000 else 0, n)
-		elif len(data) >= 7:
-			dest, src, n, size = struct.unpack('<HHBH', data[:7])
-			if size + 5 == len(data):
-				flags = 0
-				if dest & 0x8000:
-					dest &= 0x7FFF
-					flags |= 1
-				if src & 0x8000:
-					src &= 0x7FFF
-					flags |= 2
-				return Message(dest, src, data[7:], flags, n)
-			else:
-				return self
-		else:
-			return self
 
 class SyncPing(Packet):
 	def __init__(self, addr, flag, counter):
@@ -124,7 +101,7 @@ class BasicInterface:
 			#digest = crc.digest()
 			
 			#if check[0] == digest[1] and check[1] == digest[0]:
-			return Packet(data).decode()
+			return Packet(data)
 			#else:
 			#	print('crc fail: ' + tohex(data + check))
 	
@@ -209,10 +186,19 @@ class Connection:
 			self.debug = {}
 	
 	def should_output_debug(self, pkt, outgoing):
-		if outgoing:
-			return 'tx' in self.debug
+		ptype = self.packet_type(pkt)
+		if ptype == 'msg' and self.is_synced(pkt):
+			if outgoing:
+				return 'tx' in self.debug
+			else:
+				return 'rx' in self.debug
+		elif ptype == 'sync':
+			return 'sync' in self.debug
 		else:
-			return self.is_synced(pkt) and 'rx' in self.debug
+			return False
+	
+	def packet_type(self, pkt) -> ('msg', 'sync', None):
+		return None
 	
 	def output_debug(self, pkt, outgoing):
 		if self.should_output_debug(pkt, outgoing):
@@ -221,6 +207,28 @@ class Connection:
 	
 	def is_synced(self, pkt):
 		return True
+	
+	def decode_packet(self, pkt):
+		return pkt
+	
+	def read(self):
+		pkt = self.decode_packet(self.bus.read())
+		self.output_debug(pkt, False)
+		return pkt, self.is_synced(pkt)
+
+	def run(self):
+		self.stop_flag = False
+		while not self.stop_flag:
+			pkt, synced = self.read()
+			for l in self.listeners:
+				try:
+					l.receive(pkt, synced)
+				except Exception as ex:
+					print('{} threw {}'.format(l, ex))
+	
+	def stop(self):
+		self.stop_flag = True
+
 
 class Intellibus(Connection):
 	def __init__(self, iface, **kwargs):
@@ -241,8 +249,6 @@ class Intellibus(Connection):
 	def should_output_debug(self, pkt, outgoing):
 		if not super().should_output_debug(pkt, outgoing):
 			return False
-		elif type(pkt) in (SyncPing, SyncReply) and 'sync' not in self.debug:
-			return False
 		elif outgoing:
 			return True
 		else:
@@ -262,6 +268,38 @@ class Intellibus(Connection):
 		pkt = Message(dest, src, msg, flags)
 		for _ in range(kwargs['count'] if 'count' in kwargs else 6):
 			self.send_raw(pkt)
+
+	def decode_packet(self, pkt):
+		data = bytes(pkt)[:-2]
+		if len(data) == 2:
+			(addr,) = struct.unpack('<H', data)
+			return SyncReply(addr & 0x7FFF, 1 if addr & 0x8000 else 0)
+		elif len(data) == 3:
+			addr, n = struct.unpack('<HB', data)
+			return SyncPing(addr & 0x7FFF, 1 if addr & 0x8000 else 0, n)
+		elif len(data) >= 7:
+			dest, src, n, size = struct.unpack('<HHBH', data[:7])
+			if size + 5 == len(data):
+				flags = 0
+				if dest & 0x8000:
+					dest &= 0x7FFF
+					flags |= 1
+				if src & 0x8000:
+					src &= 0x7FFF
+					flags |= 2
+				return Message(dest, src, data[7:], flags, n)
+			else:
+				return pkt
+		else:
+			return pkt
+	
+	def packet_type(self, pkt):
+		if type(pkt) is Message:
+			return 'msg'
+		elif type(pkt) in (SyncPing, SyncReply):
+			return 'sync'
+		else:
+			return None
 	
 	def is_synced(self, pkt):
 		if type(pkt) is Message:
@@ -277,7 +315,7 @@ class Intellibus(Connection):
 			return True
 	
 	def read(self):
-		pkt = self.bus.read()
+		pkt, _ = super().read()
 		self.output_debug(pkt, False)
 		isSynced = True
 		if type(pkt) is SyncPing:
@@ -298,19 +336,6 @@ class Intellibus(Connection):
 
 		return pkt, isSynced
 
-	def run(self):
-		self.stop_flag = False
-		while not self.stop_flag:
-			pkt, synced = self.read()
-			for l in self.listeners:
-				try:
-					l.receive(pkt, synced)
-				except Exception as ex:
-					print('{} threw {}'.format(l, ex))
-	
-	def stop(self):
-		self.stop_flag = True
-	
 	def broadcast(self, msg, **kwargs):
 		if type(msg) is Message:
 			msg = msg.payload
