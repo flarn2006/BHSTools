@@ -191,7 +191,7 @@ class Connection:
 			if outgoing:
 				return 'tx' in self.debug
 			else:
-				return 'rx' in self.debug and self.is_synced(pkt)
+				return 'rx' in self.debug
 		elif ptype == 'sync':
 			return 'sync' in self.debug
 		else:
