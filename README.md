@@ -35,8 +35,8 @@ Another option is to use the factory programming port, labeled "J8". This provid
     [ 1 2 3 4   6 ]
 
 	1: P0L.4 (used for bootloader access)
-	2: TX (panel out, PC in) (MOSI on Bus Pirate)
-	3: RX (panel in, PC out) (MISO on Bus Pirate)
+	2: TX (panel out, PC in) (MISO on Bus Pirate)
+	3: RX (panel in, PC out) (MOSI on Bus Pirate)
 	4: GND
 	6: Like AUX, but always active (not needed here)
 
