@@ -3,3 +3,4 @@ __pycache__
 *.pgm
 testbed/log.txt
 testbed/port.txt
+bsl/firmware.bin

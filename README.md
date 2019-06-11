@@ -48,7 +48,13 @@ If you are using a [Bus Pirate](http://dangerousprototypes.com/docs/Bus_Pirate),
 	(1)
 	     (type 'y' when prompted)
 
-If all you need to do is program your panel in the traditional sense (as an installer would) then you will only need to use pins 2 (TX), 3 (RX), and 4 (GND). However, if you're interested in experimenting with your system at a lower level, you can ground pin 1 (P0L.4) while powering up the panel to enter BSL (Bootstrap Loader) mode. This will bypass the panel's firmware, and allow you to directly execute code on the processor. I'll soon post a script that uses this to dump the panel's ROM. For more information, see the [Infineon C161PI user manual](http://www.keil.com/dd/docs/datashts/infineon/c161pi_um.pdf), "The Bootstrap Loader", page 273.
+#### BSL Mode
+
+If all you need to do is program your panel in the traditional sense (as an installer would) then you can ignore this section. However, if you're interested in experimenting with your system at a lower level, you can ground pin 1 (P0L.4) while powering up the panel to enter BSL (Bootstrap Loader) mode. This will bypass the panel's firmware, and allow you to directly execute code on the processor.
+
+In the `bsl` directory, you will find a script called `romdump.py`. If you have a panel in BSL mode connected via UART, you can use this script to dump the contents of its firmware to your PC. In the future, it may be possible to reflash the panel's firmware in a similar manner, so if you back up your firmware, you may be able to restore your panel if it ever becomes bricked, or even flash custom/modified firmware.
+
+For more information, see the [Infineon C161PI user manual](http://www.keil.com/dd/docs/datashts/infineon/c161pi_um.pdf), "The Bootstrap Loader", page 273.
 
 ### Next steps
 
