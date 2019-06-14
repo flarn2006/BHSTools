@@ -120,7 +120,7 @@ def upload_from_json(filename):
 			stdout.flush()
 			sleep(1)
 		print('\nPanel will now restart.')
-		send(0, 4002, '40')
+		send(0, 32)
 	except KeyboardInterrupt:
 		print('\nPanel restart aborted.')
 		print('Some uploaded programming may not take effect until you manually power cycle the panel.')
