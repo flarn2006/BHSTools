@@ -4,3 +4,4 @@ __pycache__
 testbed/log.txt
 testbed/port.txt
 bsl/firmware.bin
+bsl/ram.bin

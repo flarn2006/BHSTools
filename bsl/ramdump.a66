@@ -1,0 +1,35 @@
+$MOD167
+$ERRORPRINT
+$NODEBUG
+$NOTYPE
+
+BOOTSTRAP section code 'NCODE'
+org 0FA40h
+
+ADDRSEL1 DEFR 0FE18h
+BUSCON1 DEFR 0FF14h
+S0TBUF equ 0FEB0h
+S0TIC equ 0FF6Ch
+S0TIR equ S0TIC.7
+
+boot proc near
+
+	mov ADDRSEL1, #4005h
+	mov BUSCON1, #40Fh
+	mov r11, #40h
+loop:
+	exts r11, #1
+	movb rl1, [r10]
+	movbz S0TBUF, rl1
+wait:
+	jnb S0TIR, wait
+	bclr S0TIR
+	add r10, #1
+	addc r11, #0
+	jmpr cc_UC, loop
+
+boot endp
+
+BOOTSTRAP ends
+
+end
