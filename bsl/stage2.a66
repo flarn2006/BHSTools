@@ -1,0 +1,85 @@
+$MOD167
+$ERRORPRINT
+
+BUSCON0 DEFR 0FF0Ch
+SYSCON DEFR 0FF12h
+SYSCON2 DEFR 0F1D0h
+SYSCON3 DEFR 0F1D4h
+ADDRSEL1 DEFR 0FE18h
+BUSCON1 DEFR 0FF14h
+STKOV DEFR 0FE14h
+S0TBUF DEFR 0FEB0h
+S0TIC DEFR 0FF6Ch
+S0TIR EQU S0TIC.7
+S0RBUF DEFR 0FEB2h
+S0RIC DEFR 0FF6Eh
+S0RIR EQU S0RIC.7
+
+BOOTSTRAP section code at 0FA60h
+
+boot proc
+
+	bfldl BUSCON0, #0FFh, #0AFh
+	bfldh BUSCON0, #0D6h, #4
+	;bfldh SYSCON, #0FFh, #22h
+	;bfldl SYSCON, #7Fh, #0Ch
+	;extr #2
+	;mov SYSCON2, #0
+	;mov SYSCON3, #0
+	mov ADDRSEL1, #4005h
+	mov BUSCON1, #40Fh
+	;mov STKOV, #0FB0Ch
+	;mov DPP1, #1
+	;mov DPP2, #100h
+	;mov CP, #0FA20h
+	mov r0, #8080h
+
+	jmpr cc_UC, start
+	
+readbyte:
+	jnb S0RIR, readbyte
+	bclr S0RIR
+	and S0RBUF, #0FFh
+	movb rl1, #0
+	or r1, S0RBUF
+	ret
+
+readword:
+	callr readbyte
+	shl r1, #8
+	callr readbyte
+	rol r1, #8
+	ret
+
+sendbyte:
+	movbz S0TBUF, rl1
+sendbyte_wait:
+	jnb S0TIR, sendbyte_wait
+	bclr S0TIR
+	ret
+	
+start:
+	movb rl1, #3Fh
+	callr sendbyte
+	callr readword
+	mov r2, r1
+	callr readword
+	xor r1, r2
+	cmp r1, #0ABCDh
+	jmpr cc_NZ, start
+	mov r3, #0
+loop:
+	callr readbyte
+	exts #41h, #1
+	movb [r3], rl1
+	add r3, #1
+	sub r2, #1
+	jmpr cc_NZ, loop
+	calls #41h, #0
+	jmpr cc_UC, start
+
+boot endp
+
+BOOTSTRAP ends
+
+end

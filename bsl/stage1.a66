@@ -1,0 +1,33 @@
+$MOD167
+$ERRORPRINT
+
+bootcode equ 0FA40h
+loadbuf equ bootcode+20h
+S0RBUF equ 0FEB2h
+S0RIC equ 0FF6Eh
+S0RIR equ S0RIC.7
+
+BOOTSTRAP section code at bootcode
+
+boot proc
+
+	mov r1, sof loadbuf
+	mov r2, #0ABCDh
+wait:
+	jnb S0RIR, wait
+	bclr S0RIR
+	mov r3, S0RBUF
+	movb [r1], rl3
+	add r1, #1
+	sub r2, #1
+	jmpr cc_NZ, wait
+
+	nop
+	nop
+	nop
+
+boot endp
+
+BOOTSTRAP ends
+
+end
