@@ -6,8 +6,8 @@ testbed/port.txt
 bsl/firmware.bin
 bsl/ram.bin
 bsl/TEMP.*
-bsl/*.LST
-bsl/*.OBJ
+bsl/a66src/*.LST
+bsl/a66src/*.OBJ
 bsl/C166V???.EXE
 bsl/A166.EXE
 bsl/REG167.INC
