@@ -165,7 +165,8 @@ def init(ser:Serial):
 		raise BSLCommError('Stage 2 bootloader execution was not detected.')
 
 def run(ser:Serial, code:bytes):
-	header = struct.pack('<HH', len(code), len(code)^0xABCD)
+	lc = len(code) + 2
+	header = struct.pack('<HH', lc, lc^0xABCD)
 	ser.write(header + code + b'\xdb\0')
 
 def readb(ser:Serial, addr):
