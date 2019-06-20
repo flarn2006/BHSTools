@@ -11,3 +11,4 @@ bsl/a66src/*.OBJ
 bsl/C166V???.EXE
 bsl/A166.EXE
 bsl/REG167.INC
+bsl/.flash_warning_given.flag

@@ -73,7 +73,7 @@ def assemble(code, base=0):
 
 def load_bsl(ser:Serial, program:bytes, allow_overflow=False):
 	if len(program) > 32 and not allow_overflow:
-		raise IndexError('Maximum program size is 32 bytes')
+		raise ValueError('Maximum program size is 32 bytes')
 
 	ser.reset_input_buffer()
 	ser.write(b'\0')
@@ -164,14 +164,127 @@ def init(ser:Serial):
 	if ser.read(1) != b'?':
 		raise BSLCommError('Stage 2 bootloader execution was not detected.')
 
-def run(ser:Serial, code:bytes):
+def run(ser:Serial, code:bytes, maxread=1):
 	lc = len(code) + 2
 	header = struct.pack('<HH', lc, lc^0xABCD)
+	ser.reset_input_buffer()
 	ser.write(header + code + b'\xdb\0')
 
-def readb(ser:Serial, addr):
-	ser.reset_input_buffer()
+	out = b''
+	if maxread < 0:
+		try:
+			for _ in range(maxread):
+				out += ser.read(1)
+			return out
+		except KeyboardInterrupt:
+			return out
+	else:
+		for _ in range(maxread):
+			out += ser.read(1)
+		return out
+
+def readmem(ser:Serial, addr, length):
+	if addr % 2 != 0:
+		raise IndexError('Address must be 16-bit aligned.')
+	elif length % 2 != 0:
+		raise ValueError('Length must be a multiple of two bytes.')
+	
+	return run(ser, fromhex(''.join([
+		'E6F1'+tohex(struct.pack('<H', addr & 0xFFFF)),    # mov r1, addr&0xFFFF
+		'E6F2{:02X}00'.format(addr>>16),                   # mov r2, addr>>16
+		'E6F3'+tohex(struct.pack('<H', length & 0xFFFF)),  # mov r3, length&0xFFFF
+		'E6F4'+tohex(struct.pack('<H', length>>16)),       # mov r4, length>>16
+		# loop:
+		'DC02',                                            # exts r2, #1
+		'A851',                                            # mov r5, [r1]
+		'C5FAB0FE',                                        # movbz S0TBUF, rl5
+		# wait_tx1:
+		'9AB6FE70',                                        # jnb S0TIR, wait_tx1
+		'7EB6',                                            # bclr S0TIR
+		'C5FBB0FE',                                        # movbz S0TBUF, rh5
+		# wait_tx2:
+		'9AB6FE70',                                        # jnb S0TIR, wait_tx2
+		'7EB6',                                            # bclr S0TIR
+		'0812',                                            # add r1, #2
+		'1820',                                            # addc r2, #0
+		'2832',                                            # sub r3, #2
+		'3840',                                            # subc r4, #0
+		'F053',                                            # mov r5, r3
+		'7054',                                            # or r5, r4
+		'3DED'                                             # jmpr cc_NZ, loop
+	])), maxread=length+1)[:length]
+
+def writemem(ser:Serial, addr, data):
 	run(ser, fromhex(''.join([
+		'E6F1'+tohex(struct.pack('<H', addr & 0xFFFF)),  # mov r1, addr&0xFFFF
+		'E6F2{:02X}00'.format(addr>>16),                 # mov r2, addr>>16
+		'E6F3'+tohex(struct.pack('<H', len(data))),      # mov r3, len(data)
+		# wait:
+		'9AB7FE70',                                      # jnb S0RIR, wait
+		'7EB7',                                          # bclr S0RIR
+		'F2F4B2FE',                                      # mov r4, S0RBUF
+		'DC02',                                          # exts r2, #1
+		'B981',                                          # movb [r1], rl4
+		'0811',                                          # add r1, #1
+		'1820',                                          # addc r2, #0
+		'2831',                                          # sub r3, #1
+		'3DF5'                                           # jmpr cc_NZ, wait
+	])), maxread=0)
+	ser.write(data)
+	if ser.read(1) != b'?':
+		raise BSLCommError('Did not receive expected response from panel.')
+
+def flash_write(ser:Serial, addr, data):
+	addr %= 0x200000
+	addr += 0x200000
+
+	if addr % 2 != 0:
+		raise IndexError('Address must be 16-bit aligned.')
+	elif len(data) % 2 != 0:
+		raise ValueError('Data length must be a multiple of two bytes.')
+	elif len(data) > min(0x10000 - (addr & 0xFFFF), 0xFFFF):
+		raise ValueError('Maximum data length is 65535 bytes, and must not cross segment boundaries.')
+	
+	run(ser, fromhex(''.join([
+		'E6F1'+tohex(struct.pack('<H', addr & 0xFFFF)),  # mov r1, addr&0xFFFF
+		'E6F2{:02X}00'.format(addr>>16),                 # mov r2, addr>>16
+		'E6F3'+tohex(struct.pack('<H', len(data))),      # mov r3, len(data)
+		'E6F5AA00',                                      # mov r5, #0aah
+		'E6F6A000',                                      # mov r6, #0a0h
+		'E6F85500',                                      # mov r8, #55h
+		'E6F9F000',                                      # mov r9, #0f0h
+		# wait_rx1:
+		'9AB7FE70',                                      # jnb S0RIR, wait_rx1
+		'7EB7',                                          # bclr S0RIR
+		'F2F4B2FE',                                      # mov r4, S0RBUF
+		'9AB7FE70',                                      # jnb S0RIR, wait_rx2
+		'7EB7',                                          # bclr S0RIR
+		'F2F7B2FE',                                      # mov r7, S0RBUF
+		'F19E',                                          # movb rh4, rl7
+		'D7202000',                                      # exts #20h, #3
+		'F6F5AA0A',                                      # mov 0aaah, r5
+		'F6F85405',                                      # mov 0554h, r8
+		'F6F6AA0A',                                      # mov 0aaah, r6
+		'DC02',                                          # exts r2, #1
+		'B841',                                          # mov [r1], r4
+		# wait_flash:
+		'DC02',                                          # exts r2, #1
+		'A871',                                          # mov r8, [r1]
+		'5074',                                          # xor r7, r4
+		'8AF7FB70',                                      # jb r7.7, wait_flash
+		'DC02',                                          # exts r2, #1
+		'B891',                                          # mov [r1], r9
+		'0812',                                          # add r1, #2
+		'1820',                                          # addc r2, #0
+		'2832',                                          # sub r3, #2
+		'3DE0'                                           # jmpr cc_NZ, wait_rx1
+	])), maxread=0)
+	ser.write(data)
+	if ser.read(1) != b'?':
+		raise BSLCommError('Did not receive expected response from panel.')
+
+def readbyte(ser:Serial, addr):
+	return run(ser, fromhex(''.join([
 		'E6F2'+tohex(struct.pack('<H', addr & 0xFFFF)),  # mov r2, addr&0xFFFF
 		'D700{:02X}00'.format(addr>>16),                 # exts addr>>16, #1
 		'A922',                                          # movb rl1, [r2]
@@ -179,5 +292,22 @@ def readb(ser:Serial, addr):
 		# wait:
 		'9AB6FE70',                                      # jnb S0TIR, wait
 		'7EB6'                                           # bclr S0TIR
+	])), maxread=2)[0]
+
+def flash_erase(ser:Serial, sector_addr):
+	sector_addr %= 0x200000
+	sector_addr += 0x200000
+	
+	run(ser, fromhex(''.join([
+		'E6F1AA55',                                            # mov r1, #55aah
+		'E6F28030',                                            # mov r2, #3080h
+		'D7202000',                                            # exts #20h, #3
+		'F7F2AA0A',                                            # movb 0aaah, rl1
+		'F7F35505',                                            # movb 0555h, rh1
+		'F7F4AA0A',                                            # movb 0aaah, rl2
+		'D7102000',                                            # exts #20h, #2
+		'F7F2AA0A',                                            # movb 0aaah, rl1
+		'F7F35505',                                            # movb 0555h, rh1
+		'D700{:02X}00'.format(sector_addr>>16),                # exts sector_addr>>16, #1
+		'F7F5'+tohex(struct.pack('<H', sector_addr & 0xFFFF))  # movb [sector_addr&0xFFFF], rh2
 	])))
-	return ser.read(2)[0]
