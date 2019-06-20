@@ -54,9 +54,9 @@ If all you need to do is program your panel in the traditional sense (as an inst
 
 In case it isn't obvious, this means you can boot whatever code you want on your panel.
 
-In the `bsl` directory, you will find a script called `romdump.py`. If you have a panel in BSL mode connected via UART, you can use this script to dump the contents of its firmware to your PC. In the future, it may be possible to reflash the panel's firmware in a similar manner, so if you back up your firmware, you may be able to restore your panel if it ever becomes bricked, or even flash custom/modified firmware.
+In the `bsl` directory, you will find a script called `romdump.py`. If you have a panel in BSL mode connected via UART, you can use this script to back up the contents of its firmware to your PC. You can then use `flash.py` to restore this backup if the need arises—say, if your panel is bricked by corrupted programming. Since the firmware is not needed to run the bootstrap loader, this will work even if your panel's EEPROM is completely blank.
 
-For more information, see the [Infineon C161PI user manual](http://www.keil.com/dd/docs/datashts/infineon/c161pi_um.pdf), "The Bootstrap Loader", page 273.
+For more information about the bootstrap loader, see the [Infineon C161PI user manual](http://www.keil.com/dd/docs/datashts/infineon/c161pi_um.pdf), "The Bootstrap Loader", page 273.
 
 ### Next steps
 
