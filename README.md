@@ -48,15 +48,11 @@ If you are using a [Bus Pirate](http://dangerousprototypes.com/docs/Bus_Pirate),
 	(1)
 	     (type 'y' when prompted)
 
-#### BSL Mode
+#### About pin 1
 
-If all you need to do is program your panel in the traditional sense (as an installer would) then you can ignore this section. However, for all the hackers among you who are interested in experimenting with your system at a lower level, the UART port has another trick. If you ground pin 1 (P0L.4) while powering up the panel, you will activate BSL (Bootstrap Loader) mode. Instead of booting its firmware like usual, the panel will attempt to boot via the UART port.
+If all you need to do is program your panel in the traditional sense (as an installer would) then you can ignore this section. However, for all the hackers among you who are interested in experimenting with your system at a lower level, the UART port has another trick. If you ground pin 1 (P0L.4) while powering up the panel, you will activate BSL (Bootstrap Loader) mode. Instead of booting its firmware like usual, the panel will attempt to boot via the UART port. In case it isn't obvious, this means you can boot whatever code you want on your panel.
 
-In case it isn't obvious, this means you can boot whatever code you want on your panel.
-
-In the `bsl` directory, you will find a script called `romdump.py`. If you have a panel in BSL mode connected via UART, you can use this script to back up the contents of its firmware to your PC. You can then use `flash.py` to restore this backup if the need arises—say, if your panel is bricked by corrupted programming. Since the firmware is not needed to run the bootstrap loader, this will work even if your panel's EEPROM is completely blank.
-
-For more information about the bootstrap loader, see the [Infineon C161PI user manual](http://www.keil.com/dd/docs/datashts/infineon/c161pi_um.pdf), "The Bootstrap Loader", page 273.
+For more information, see the "Bootstrap Loader" section of this readme. You can also read the [Infineon C161PI user manual](http://www.keil.com/dd/docs/datashts/infineon/c161pi_um.pdf), "The Bootstrap Loader", page 273.
 
 ### Next steps
 
@@ -67,3 +63,16 @@ Next, open a Web browser and point it to http://127.0.0.1:3121. If you're doing 
 If all goes well, a Web page will load with an interface resembling the official programming device, and of course it should function like said device as well.
 
 For more information on programming, refer to the [BHS-4000B installation manual](http://alpha.adt.com/content/dam/sop/sop/Product%20Knowledge/PanelPDFs/Install_Programming_Manual_4000B.pdf).
+
+### Bootstrap Loader
+
+The Infineon C161PI, which powers the BHS-3000 and BHS-4000 panels, contains a built-in Bootstrap Loader that allows for booting the system via a serial connection in place of the connected ROM chip. As I mentioned above, C161PI-based Brinks panels conveniently expose all the connections needed to do so on port J8. By sending custom boot code to the panel via this port, you can do pretty much anything you want with the system, including:
+
+* Creating a full dump of the panel's EEPROM (firmware + programming data)
+* Restoring a "bricked" panel by reflashing it*
+* Installing custom or modified firmware*
+* Directly executing arbitrary code on the panel's CPU
+
+*\* Reflashing the boot sector may require a simple hardware modification, which consists of cutting a trace on the circuit board to disable write protection.*
+
+The `bsl` directory contains some tools designed to work with this mode. More information to come.
