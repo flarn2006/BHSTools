@@ -3,6 +3,8 @@ jmpr cc_Z, diagbatt
 subb rl4, #3
 jmpr cc_Z, calladdr
 subb rl4, #1
+jmpr cc_Z, writemem
+subb rl4, #1
 jmpr cc_Z, reboot
 jmpr cc_UC, done
 
@@ -28,7 +30,19 @@ exts #40h, #1
 mov [r11], r5
 jmps #40h, #0A91Eh
 
-reserved:
+writemem:
+callr prompt_for_addr
+mov [-r0], r5
+mov [-r0], r4
+mov r10, #0
+mov r8, #&:Str_EnterNewByte
+mov r4, #0FFh
+callr prompt_for_num
+mov r5, r4
+mov r4, [r0+]
+mov r8, [r0+]
+exts r8, #1
+movb [r4], rl5
 
 done:
 jmps #3, #8546h
