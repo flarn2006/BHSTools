@@ -12,3 +12,8 @@ bsl/C166V???.EXE
 bsl/A166.EXE
 bsl/REG167.INC
 bsl/.flash_warning_given.flag
+bsl/mod/TEMP.*
+bsl/mod/A166.EXE
+bsl/mod/REG167.INC
+bsl/mod/base.bin
+bsl/mod/patched.bin

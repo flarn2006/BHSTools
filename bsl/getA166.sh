@@ -18,6 +18,13 @@ set -e
 unzip -j C166V???.EXE c166/{asm/REG167.INC,bin/A166.EXE}
 chmod +x A166.EXE
 
+cd mod
+for f in A166.EXE REG167.INC; do
+	if [ ! -e $f ]; then
+		ln -s ../$f .
+	fi
+done
+
 if ! which wine >&/dev/null; then
 	echo
 	echo "A Wine installation was not detected on your computer."
