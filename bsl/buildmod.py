@@ -68,8 +68,10 @@ def preprocess_asm_line(line):
 			elif mode == '+':
 				# Segment, Offset
 				out += '#{}, #{}'.format(seg, ofs)
+		elif mode == '&':
+			out += '&'
 		else:
-			out += '&' if mode == '&' else ('&' + mode)
+			out += '&' + mode
 	
 	return out + line
 
@@ -83,34 +85,41 @@ def finish_asm_section():
 			address += 1
 		asmcode = ''
 
+def process_line(line):
+	global asmcode, address, labels
+	line = line.rstrip('\n').lstrip()
+	if len(line) == 0 or line[0] == '#':
+		# Empty line or comment
+		return
+	elif line[0] == '@':
+		# Target address
+		finish_asm_section()
+		print(line)
+		address = int(line[1:], base=16)
+	elif line[0] == '-':
+		# Section name
+		finish_asm_section()
+		print(line)
+		atsign = line.find('@')
+		if atsign == -1:
+			label = line[1:].strip()
+		else:
+			label = line[1:atsign].strip()
+			address = int(line[atsign+1:], base=16)
+		labels[label] = address
+	elif line[0] == '<':
+		# Include
+		with open(line[1:].lstrip(), 'r') as f:
+			for iline in f:
+				process_line(iline)
+	else:
+		# Just a line of code
+		asmcode += preprocess_asm_line(line) + '\n'
+
 print('Applying patch...')
 with open('patchsrc.txt', 'r') as srcfile:
 	for line in srcfile:
-		line = line.rstrip('\n').lstrip()
-		if len(line) == 0:
-			continue
-		elif line[0] == '#':
-			# Comment
-			pass
-		elif line[0] == '@':
-			# Target address
-			finish_asm_section()
-			print(line)
-			address = int(line[1:], base=16)
-		elif line[0] == '-':
-			# Section name
-			finish_asm_section()
-			print(line)
-			labels[line[1:].lstrip()] = address
-		elif line[0] == '<':
-			# Include
-			with open(line[1:].lstrip(), 'r') as f:
-				for iline in f:
-					asmcode += preprocess_asm_line(iline)
-				asmcode += '\n'
-		else:
-			# Just a line of code
-			asmcode += preprocess_asm_line(line) + '\n'
+		process_line(line)
 
 finish_asm_section()
 

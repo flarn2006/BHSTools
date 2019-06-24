@@ -64,7 +64,7 @@ mov [-r0], r4
 mov r11, #0A91Eh
 mov r12, #40h
 mov r9, #8 ;segment of prompt text
-calls #3, #258Ch
+calls &+pgmr_getnum
 add r0, #12
 ret
 
