@@ -18,17 +18,18 @@ calladdr:
 callr prompt_for_addr
 shl r5, #8
 movb rl5, #0DAh
-mov r11, #0A91Eh
-exts #40h, #1
+mov r11, #&:scratch_mem
+exts #&^scratch_mem, #1
 mov [r11], r5
 add r11, #2
-exts #40h, #1
+exts #&^scratch_mem, #1
 mov [r11], r4
 add r11, #2
 mov r5, #0DBh
-exts #40h, #1
+exts #&^scratch_mem, #1
 mov [r11], r5
-jmps #40h, #0A91Eh
+calls &+scratch_mem
+jmps &+return_to_diag_menu
 
 writemem:
 callr prompt_for_addr
@@ -43,6 +44,7 @@ mov r4, [r0+]
 mov r8, [r0+]
 exts r8, #1
 movb [r4], rl5
+jmps &+return_to_diag_menu
 
 done:
 jmps #3, #8546h
@@ -61,8 +63,8 @@ mov [-r0], r5
 mov [-r0], r4
 mov r4, #5
 mov [-r0], r4
-mov r11, #0A91Eh
-mov r12, #40h
+mov r11, #&:scratch_mem
+mov r12, #&^scratch_mem
 mov r9, #8 ;segment of prompt text
 calls &+pgmr_getnum
 add r0, #12
