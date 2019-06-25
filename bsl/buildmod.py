@@ -117,7 +117,7 @@ def process_line(line):
 		asmcode += preprocess_asm_line(line) + '\n'
 
 print('Applying patch...')
-with open('patchsrc.txt', 'r') as srcfile:
+with open('patch.psc', 'r') as srcfile:
 	for line in srcfile:
 		process_line(line)
 

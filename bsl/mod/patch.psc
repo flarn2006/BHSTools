@@ -1,5 +1,5 @@
 # Load address definitions
-	< addrdefs.txt
+	< addrdefs.psc
 
 # Skip firmware integrity check (required for mods to work)
 @ 5DBDE
