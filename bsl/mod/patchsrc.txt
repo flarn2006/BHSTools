@@ -24,6 +24,8 @@
 # Make hidden parameters visible
 @ 3297A
 	nop
+@ 3299A
+	db 0Dh
 
 # Use custom table for diagnostics menu
 @ 80000
