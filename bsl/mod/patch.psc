@@ -1,5 +1,6 @@
-# Load address definitions
+# Load header files
 	< addrdefs.psc
+	< macros.psc
 
 # Skip firmware integrity check (required for mods to work)
 @ 5DBDE

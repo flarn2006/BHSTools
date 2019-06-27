@@ -8,8 +8,9 @@ chdir('mod')
 
 labels = {}
 
+header = ''
 asmcode = ''
-address = 0
+address = -1
 
 try:
 	with open('base.bin', 'rb') as f:
@@ -76,9 +77,9 @@ def preprocess_asm_line(line):
 	return out + line
 
 def finish_asm_section():
-	global asmcode, address, labels, rom
+	global asmcode, address, labels, rom, header
 	if len(asmcode) > 0:
-		code = bsl.assemble(asmcode)
+		code = bsl.assemble(asmcode, base=address, header=header)
 		rom = patchbytes(rom, address, code)
 		address += len(code)
 		if address % 2 == 1:
@@ -86,7 +87,7 @@ def finish_asm_section():
 		asmcode = ''
 
 def process_line(line):
-	global asmcode, address, labels
+	global asmcode, address, labels, header
 	line = line.rstrip('\n').lstrip()
 	if len(line) == 0 or line[0] == '#':
 		# Empty line or comment
@@ -95,7 +96,10 @@ def process_line(line):
 		# Target address
 		finish_asm_section()
 		print(line)
-		address = int(line[1:], base=16)
+		if line[1:].strip().lower() == 'head':
+			address = -1
+		else:
+			address = int(line[1:], base=16)
 	elif line[0] == '-':
 		# Section name
 		finish_asm_section()
@@ -112,6 +116,9 @@ def process_line(line):
 		with open(line[1:].lstrip(), 'r') as f:
 			for iline in f:
 				process_line(iline)
+	elif address == -1:
+		# Header line
+		header += preprocess_asm_line(line) + '\n'
 	else:
 		# Just a line of code
 		asmcode += preprocess_asm_line(line) + '\n'

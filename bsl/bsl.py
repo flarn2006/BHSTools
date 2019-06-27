@@ -22,17 +22,19 @@ class AssemblerError(Exception):
 	def __init__(self, output=None):
 		self.output = output
 
-def assemble(code, base=0):
+def assemble(code, base=0, header=''):
 	with open('TEMP.A66', 'w') as f:
 		print('$MOD167', file=f)
 		print('$NODEBUG', file=f)
 		print('$NOTYPE', file=f)
+		print('$GEN', file=f)
 		try:
 			with open('REG167.INC', 'r') as inc:
 				print(inc.read(), file=f)
 		except OSError as ex:
 			print('; ERROR OPENING REG167.INC:', file=f)
 			print('; {}'.format(ex), file=f)
+		print(header, file=f)
 		print('BOOTSTRAP section code at 0{:04X}h'.format((base-12) % 0x10000), file=f)
 		print('boot proc', file=f)
 		print("db 'START_MARKER'", file=f)

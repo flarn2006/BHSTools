@@ -6,7 +6,7 @@ subb rl4, #1
 jmpr cc_Z, writemem
 subb rl4, #1
 jmpr cc_Z, reboot
-jmpr cc_UC, done
+jmps #3, #8546h
 
 diagbatt:
 jmps #3, #8408h
@@ -33,52 +33,16 @@ jmps &+return_to_diag_menu
 
 writemem:
 callr prompt_for_addr
-mov [-r0], r5
-mov [-r0], r4
-mov r10, #0
-mov r8, #&:Str_EnterNewByte
-mov r4, #0FFh
-callr prompt_for_num
-mov r5, r4
-mov r4, [r0+]
-mov r8, [r0+]
+mov r8, r5
+exts r8, #1
+movb rl5, [r4]
+movbz r5, rl5
+%PGETNUM r5, &+Str_EnterNewByte, #0, #0FFh, #3, r5, #0
 exts r8, #1
 movb [r4], rl5
 jmps &+return_to_diag_menu
 
-done:
-jmps #3, #8546h
-
-prompt_for_num:
-mov [-r0], r4
-mov r4, #0
-mov [-r0], r4
-mov [-r0], r4
-mov r4, #0Eh
-add r4, r0
-mov r5, #0
-add r4, #8000h
-addc r5, #3Fh
-mov [-r0], r5
-mov [-r0], r4
-mov r4, #5
-mov [-r0], r4
-mov r11, #&:scratch_mem
-mov r12, #&^scratch_mem
-mov r9, #8 ;segment of prompt text
-calls &+pgmr_getnum
-add r0, #12
-ret
-
 prompt_for_addr:
-mov r10, #0
-mov r8, #&:Str_EnterSegment
-mov r4, #41h
-callr prompt_for_num
-mov [-r0], r4
-mov r10, #0DC20h
-mov r8, #&:Str_EnterOffset
-mov r4, #0FFFFh
-callr prompt_for_num
-mov r5, [r0+]
+%PGETNUM r5, &+Str_EnterSegment, #0, #41h, #3, #0, #0
+%PGETNUM r4, &+Str_EnterOffset, #0, #0FFFFh, #5, #0DC20h, #0
 ret
