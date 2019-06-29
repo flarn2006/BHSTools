@@ -1,0 +1,26 @@
+$MOD167
+$ERRORPRINT
+
+DYNXSEG section code at 0
+
+dynexec proc
+
+	mov r4, #100h
+findbit:
+	exts #9, #1
+	mov r8, [r4+]
+	jmpr cc_Z, findbit
+	sub r4, #102h
+	shl r4, #4
+	prior r5, r8
+	shl r5, #1
+	add r4, r5
+	add r4, #1000h
+	jmpi cc_UC, [r4]
+	
+
+dynexec endp
+
+DYNXSEG ends
+
+end
