@@ -86,7 +86,7 @@ def finish_asm_section():
 			address += 1
 		asmcode = ''
 
-def process_line(line):
+def process_line(line, headfile=None):
 	global asmcode, address, labels, header
 	line = line.rstrip('\n').lstrip()
 	if len(line) == 0 or line[0] == '#':
@@ -113,20 +113,35 @@ def process_line(line):
 		labels[label] = address
 	elif line[0] == '<':
 		# Include
-		with open(line[1:].lstrip(), 'r') as f:
+		filename = line[1:].lstrip()
+		with open(filename, 'r') as f:
+			pre = ''
 			for iline in f:
-				process_line(iline)
+				process_line(iline, headfile=headfile)
 	elif address == -1:
 		# Header line
-		header += preprocess_asm_line(line) + '\n'
+		processed = preprocess_asm_line(line) + '\n'
+		header += processed
+		if headfile is not None:
+			print(processed, file=headfile, end='')
 	else:
 		# Just a line of code
 		asmcode += preprocess_asm_line(line) + '\n'
 
 print('Applying patch...')
 with open('patch.psc', 'r') as srcfile:
-	for line in srcfile:
-		process_line(line)
+	try:
+		headfile = open('header.inc', 'w')
+	except OSError as ex:
+		print('Warning: unable to create header.inc ({})'.format(ex))
+		headfile = None
+
+	try:
+		for line in srcfile:
+			process_line(line, headfile=headfile)
+	finally:
+		if headfile is not None:
+			headfile.close()
 
 finish_asm_section()
 
