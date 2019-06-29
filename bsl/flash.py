@@ -8,6 +8,9 @@ import sys
 
 sector_sizes = [0x4000, 0x2000, 0x2000, 0x8000] + [0x10000]*31
 
+if not give_warning():
+	sys.exit(2)
+
 def print_sector_chart():
 	print('╔══════╤══════════╤══════════╤═══════╗')
 	print('║ Sec# │ Start    │ End      │ Bytes ║')
@@ -92,9 +95,6 @@ def give_warning():
 			pass
 	
 	return True
-
-if not give_warning():
-	sys.exit(2)
 
 try:
 	sectors = parse_range(sys.argv[3])

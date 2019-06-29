@@ -1,3 +1,5 @@
+- pgmr_putstr  @ 30112
+- pgmr_getkey  @ 307DC
 - pgmr_getnum  @ 3258C
 - pgmr_select  @ 3228E
 - pgmr_menu    @ 317B2

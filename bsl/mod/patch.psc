@@ -1,6 +1,7 @@
 # Load header files
 	< addrdefs.psc
-	< macros.psc
+@ head
+	< macros.inc
 
 # Skip firmware integrity check (required for mods to work)
 @ 5DBDE
@@ -42,7 +43,9 @@
 - Str_DiagItem5
 	db '5 Write Memory  ', 0
 - Str_DiagItem6
-	db '6 System Reset  ', 0
+	db '6 Run Quick Code', 0
+- Str_DiagItem7
+	db '7 System Reset  ', 0
 - MnuTbl_Diag
 	dw 481Fh, 6
 	dw 480Eh, 6
@@ -50,6 +53,7 @@
 	dw &:Str_DiagItem4, &^Str_DiagItem4
 	dw &:Str_DiagItem5, &^Str_DiagItem5
 	dw &:Str_DiagItem6, &^Str_DiagItem6
+	dw &:Str_DiagItem7, &^Str_DiagItem7
 	dw 5E61h, 0
 
 @ 383E0

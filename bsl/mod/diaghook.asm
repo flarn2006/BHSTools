@@ -5,6 +5,8 @@ jmpr cc_Z, calladdr
 subb rl4, #1
 jmpr cc_Z, writemem
 subb rl4, #1
+jmpr cc_Z, dynexec
+subb rl4, #1
 jmpr cc_Z, reboot
 jmps #3, #8546h
 
@@ -40,6 +42,10 @@ movbz r5, rl5
 %PGETNUM r5, &+Str_EnterNewByte, #0, #0FFh, #3, r5, #0
 exts r8, #1
 movb [r4], rl5
+jmps &+return_to_diag_menu
+
+dynexec:
+calls #9, #0
 jmps &+return_to_diag_menu
 
 prompt_for_addr:
