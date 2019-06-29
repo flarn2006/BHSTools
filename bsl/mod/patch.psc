@@ -1,7 +1,10 @@
 # Load header files
-	< addrdefs.psc
+< addrdefs.psc
+
 @ head
 	< macros.inc
+
+< lib.psc
 
 # Skip firmware integrity check (required for mods to work)
 @ 5DBDE

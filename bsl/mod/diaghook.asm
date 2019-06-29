@@ -31,6 +31,7 @@ mov r5, #0DBh
 exts #&^scratch_mem, #1
 mov [r11], r5
 calls &+scratch_mem
+calls &+ShowDebugDump
 jmps &+return_to_diag_menu
 
 writemem:
