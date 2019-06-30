@@ -1,3 +1,4 @@
+- pgmr_getstr  @ 535A4
 - pgmr_putstr  @ 30112
 - pgmr_getkey  @ 307DC
 - pgmr_getnum  @ 3258C

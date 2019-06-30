@@ -9,6 +9,28 @@
 	mov [-r0], %reg
 )
 
+%*DEFINE (PGETSTR pseg, pofs, bseg, bofs, maxlen) (
+	mov [-r0], r12
+	mov [-r0], r11
+	mov [-r0], r10
+	mov [-r0], r9
+	mov [-r0], r8
+	
+	%CONMOV r12, %maxlen
+	%CONMOV r11, %bseg
+	%CONMOV r10, %bofs
+	%CONMOV r9, %pseg
+	%CONMOV r8, %pofs
+
+	calls &+pgmr_getstr
+
+	mov r8, [r0+]
+	mov r9, [r0+]
+	mov r10, [r0+]
+	mov r11, [r0+]
+	mov r12, [r0+]
+)
+
 %*DEFINE (PPUTSTR sseg, sofs, x, y) (
 	mov [-r0], r11
 	mov [-r0], r10

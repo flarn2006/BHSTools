@@ -77,3 +77,13 @@
 
 @ 38404
 	jmps &+Code_DiagMenuHook
+
+# Hook "Call statistic" screen
+@ 80300
+- Str_ModemCommand
+	db 'Modem command   ', 0
+- Code_CallStatHook
+	< callstathook.asm
+
+@ 3853E
+	jmps &+Code_CallStatHook
