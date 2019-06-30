@@ -87,3 +87,6 @@
 
 @ 3853E
 	jmps &+Code_CallStatHook
+
+@ 6431E
+	db 0C4h, ':Cmd'
