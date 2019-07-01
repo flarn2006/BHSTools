@@ -66,12 +66,11 @@
 
 # Hook diagnostic menu selection
 @ 80100
-- Str_EnterSegment
-	db 'Enter segment #:', 0
-- Str_EnterOffset
-	db 'Enter offset:   ', 0
+- Str_EnterAddress
+	db 'Address (in hex)'
+	db 'Enter 6 digits: ', 0
 - Str_EnterNewByte
-	db 'Enter new byte: ', 0
+	db 'New byte (0-255)', 0
 - Code_DiagMenuHook
 	< diaghook.asm
 
