@@ -48,6 +48,8 @@ If you are using a [Bus Pirate](http://dangerousprototypes.com/docs/Bus_Pirate),
 	(1)
 	     (type 'y' when prompted)
 
+I have had bad luck using the Raspberry Pi's built-in UART for this purpose; the Pi can receive data from the panel just fine but the panel hasn't responded to anything I've tried sending to it. But your mileage may vary; maybe it will work fine for you. Strangely, BSL communications (more on that shortly) work perfectly fine on a Raspberry Pi.
+
 #### About pin 1
 
 If all you need to do is program your panel in the traditional sense (as an installer would) then you can ignore this section. However, for all the hackers among you who are interested in experimenting with your system at a lower level, the UART port has another trick. If you ground pin 1 (P0L.4) while powering up the panel, you will activate BSL (Bootstrap Loader) mode. Instead of booting its firmware like usual, the panel will attempt to boot via the UART port. In case it isn't obvious, this means you can boot whatever code you want on your panel.
