@@ -17,8 +17,9 @@
 	mov [-r0], r3
 	mov [-r0], r2
 	mov [-r0], r1
-	mov r12, [r0+#1Ch]
-	mov [-r0], r12
+	mov r13, r0
+	add r13, #1Eh
+	mov [-r0], r13
 	mov r13, #16
 	loop:
 	mov r12, [r0+]
