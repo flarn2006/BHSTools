@@ -98,12 +98,12 @@ try:
 except (IndexError, ValueError):
 	def print_examples(file=sys.stdout):
 		print('\tSingle sector:     6', file=file)
-		print('\tRange of sectors:  1-31', file=file)
+		print('\tRange of sectors:  1-34', file=file)
 		print('\tMixed set:         4,7-16,18 (sector 4 + sectors 7-16 + sector 18)', file=file)
 
 	if False:  # TODO: use this code somewhere else
 		if askyesno('Reflash everything except boot sector? '):
-			print('OK. In the future, specify the range directly (e.g. 1-31) to suppress this warning.')
+			print('OK. In the future, specify the range directly (e.g. 1-34) to suppress this warning.')
 		else:
 			print('Please specify which sector(s) to reflash on the command line.')
 			print('Examples:')
@@ -119,7 +119,7 @@ with Serial(sys.argv[1], baudrate=115200) as s:
 	bsl.init(s)
 	with open(sys.argv[2], 'rb') as f:
 		addr = 0
-		for i in range(32):
+		for i in range(35):
 			if i in sectors:
 				f.seek(addr)
 				print('Sector {} (0x{:X}-0x{:X}, {} bytes):'.format(i, addr, addr+sector_sizes[i]-1, sector_sizes[i]))
