@@ -46,9 +46,11 @@
 - Str_DiagItem5
 	db '5 Write Memory  ', 0
 - Str_DiagItem6
-	db '6 Run Quick Code', 0
+	db '6 Execute Code  ', 0
 - Str_DiagItem7
-	db '7 System Reset  ', 0
+	db '7 Run Quick Code', 0
+- Str_DiagItem8
+	db '8 System Reset  ', 0
 - MnuTbl_Diag
 	dw 481Fh, 6
 	dw 480Eh, 6
@@ -57,6 +59,7 @@
 	dw &:Str_DiagItem5, &^Str_DiagItem5
 	dw &:Str_DiagItem6, &^Str_DiagItem6
 	dw &:Str_DiagItem7, &^Str_DiagItem7
+	dw &:Str_DiagItem8, &^Str_DiagItem8
 	dw 5E61h, 0
 
 @ 383E0
@@ -71,6 +74,8 @@
 	db 'Enter 6 digits: ', 0
 - Str_EnterNewByte
 	db 'New byte (0-255)', 0
+- Str_ArbCodeExec
+	db 'Enter up to 16 B', 0
 - Code_DiagMenuHook
 	< diaghook.asm
 
@@ -78,7 +83,7 @@
 	jmps &+Code_DiagMenuHook
 
 # Hook "Call statistic" screen
-@ 80300
+@ 80400
 - Str_ModemCommand
 	db 'Modem command   ', 0
 - Code_CallStatHook

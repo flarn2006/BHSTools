@@ -4,6 +4,8 @@
 - pgmr_getnum  @ 3258C
 - pgmr_select  @ 3228E
 - pgmr_menu    @ 317B2
+- strlen       @ 5E4F6
+- fromhex      @ 1FF9E
 
 - return_to_diag_menu  @ 38548
 
