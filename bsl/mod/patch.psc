@@ -94,3 +94,7 @@
 
 @ 6431E
 	db 0C4h, ':Cmd'
+
+# Include "TIME" in LCD keypad POST
+@ 68B5D
+	db 15
