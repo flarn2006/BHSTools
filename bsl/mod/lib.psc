@@ -20,6 +20,20 @@
 	mov r13, r0
 	add r13, #1Eh
 	mov [-r0], r13
+	callr show16hex
+	mov r14, r0
+	mov r15, #20h
+	add r14, r15
+	copy_loop:
+	sub r14, #2
+	mov r13, [r14]
+	mov [-r0], r13
+	sub r15, #2
+	jmpr cc_NZ, copy_loop
+	callr show16hex
+	rets
+
+show16hex:
 	mov r13, #16
 	loop:
 	mov r12, [r0+]
@@ -41,4 +55,4 @@
 	jmpr cc_NZ, loop
 	mov r8, #60
 	%PGETKEY r4
-	rets
+	ret
