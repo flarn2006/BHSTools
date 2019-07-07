@@ -32,11 +32,9 @@ mov [r11], r4
 add r11, #2
 mov r5, #0DBh
 exts #&^scratch_mem, #1
-sub r0, #4
 mov [r11], r5
 calls &+scratch_mem
 calls &+ShowDebugDump
-add r0, #4
 jmps &+return_to_diag_menu
 
 writemem:
