@@ -51,6 +51,8 @@
 	db '7 Run Quick Code', 0
 - Str_DiagItem8
 	db '8 System Reset  ', 0
+- Str_DiagItem9
+	db '9 Memory Browser', 0
 - MnuTbl_Diag
 	dw 481Fh, 6
 	dw 480Eh, 6
@@ -60,6 +62,7 @@
 	dw &:Str_DiagItem6, &^Str_DiagItem6
 	dw &:Str_DiagItem7, &^Str_DiagItem7
 	dw &:Str_DiagItem8, &^Str_DiagItem8
+	dw &:Str_DiagItem9, &^Str_DiagItem9
 	dw 5E61h, 0
 
 @ 383E0
@@ -69,9 +72,6 @@
 
 # Hook diagnostic menu selection
 @ 80100
-- Str_EnterAddress
-	db 'Address (in hex)'
-	db 'Enter 6 digits: ', 0
 - Str_EnterNewByte
 	db 'New byte (0-255)', 0
 - Str_ArbCodeExec
