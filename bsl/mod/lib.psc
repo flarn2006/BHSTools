@@ -79,12 +79,11 @@
 	movbz r5, rl5
 	rets
 
-
 - Str_MBMemHdr
 	db 'MEMORY ', 0F9h, 'Goto ', 0C4h, 'Ed', 0
 
 - Fmt_MBEditHdr
-	db 'EDIT %1%03d %1%05d %1%c', 0
+	db 'EDIT %1%03u %1%05u %1%c', 0
 
 - Fmt_MBMemAsc
 	db '%1%03X ............', 0
@@ -118,10 +117,18 @@
 		bclr r4.0
 		exts r5, #1
 		mov r7, [r4]
-		mov r8, #31h
-		jnb r13.9, noshift_1a
-		add r8, #10h
-	noshift_1a:
+		mov r8, #0FEh
+		jb r13.9, edithdr_shift
+		mov r8, r13
+		shr r8, #1
+		add r8, r14
+		and r8, #0Fh
+		add r8, #30h
+		cmp r8, #3Ah
+		jmpr cc_C, edithdr_shift
+		add r8, #7
+		
+	edithdr_shift:
 		mov [-r0], r8
 		mov [-r0], r7
 
@@ -214,6 +221,11 @@
 		mov r9, #83h
 		mov r8, r13
 		and r8, #0FFh
+		cmp r8, #12
+		jmpr cc_C, cursor_first_row
+		add r9, #1
+		sub r8, #12
+	cursor_first_row:
 		add r8, #5
 		calls #3, #4F4h
 
@@ -229,12 +241,20 @@
 		jmpr cc_Z, moveback
 		cmpb rl4, #88h
 		jmpr cc_Z, movefwd
+		cmpb rl4, #89h
+		jmpr cc_Z, shift_toggle
 		cmpb rl4, #8
 		jmpr cc_Z, gotoaddr
 		cmpb rl4, #13
 		jmpr cc_Z, edit_toggle
+		cmpb rl4, #3Ah
+		jmpr cc_NC, not_a_digit_key
+		cmpb rl4, #30h
+		jmpr cc_NC, digit_key
+	not_a_digit_key:
 		cmpb rl4, #1Bh
 		jmpa cc_NZ, &:MemoryBrowser_MainLoop
+		jb r13.8, edit_toggle
 
 		mov r13, [r0+]
 		mov r14, [r0+]
@@ -259,6 +279,7 @@
 		jb r13.0, moveup_edit_lsn
 		addb rl7, #15
 	moveup_edit_lsn:
+		exts r5, #1
 		movb [r4], rl7
 		jmpa cc_UC, &:MemoryBrowser_MainLoop
 
@@ -280,6 +301,7 @@
 		jb r13.0, movedown_edit_lsn
 		subb rl7, #15
 	movedown_edit_lsn:
+		exts r5, #1
 		movb [r4], rl7
 		jmpa cc_UC, &:MemoryBrowser_MainLoop
 	
@@ -292,7 +314,7 @@
 		mov r4, r13
 		subb rl4, #1
 		jmpr cc_NC, moveback_edit_norollover
-		movb rl4, #11
+		movb rl4, #23
 	moveback_edit_norollover:
 		mov r13, r4
 		jmpa cc_UC, &:MemoryBrowser_MainLoop
@@ -305,11 +327,16 @@
 	movefwd_edit:
 		mov r4, r13
 		addb rl4, #1
-		cmpb rl4, #12
+		cmpb rl4, #24
 		jmpr cc_C, movefwd_edit_nozero
 		movb rl4, #0
 	movefwd_edit_nozero:
 		mov r13, r4
+		jmpa cc_UC, &:MemoryBrowser_MainLoop
+
+	shift_toggle:
+		bmovn r13.9, r13.9
+		band r13.9, r13.8
 		jmpa cc_UC, &:MemoryBrowser_MainLoop
 	
 	gotoaddr:
@@ -324,4 +351,40 @@
 	
 	edit_toggle:
 		bmovn r13.8, r13.8
+		and r13, #0FD00h
 		jmpa cc_UC, &:MemoryBrowser_MainLoop
+	
+	digit_key:
+		jnb r13.8, not_editing
+		and r4, #0Fh
+		jnb r13.9, nonshifted_digit
+		cmp r4, #7
+		jmpr cc_NC, nonshifted_digit
+		add r4, #9
+		bclr r13.9
+	nonshifted_digit:
+		mov r7, r4
+		mov r5, r15
+		mov r4, r13
+		movbz r4, rl4
+		shr r4, #1
+		add r4, r14
+		addc r5, #0
+		jb r13.0, digit_lsn
+		shl r7, #4
+		exts r5, #1
+		movb rh7, [r4]
+		andb rh7, #0Fh
+		orb rh7, rl7
+		exts r5, #1
+		movb [r4], rh7
+		jmpr cc_UC, movefwd_edit
+	digit_lsn:
+		exts r5, #1
+		movb rh7, [r4]
+		andb rh7, #0F0h
+		orb rh7, rl7
+		exts r5, #1
+		movb [r4], rh7
+	not_editing:
+		jmpr cc_UC, movefwd_edit
