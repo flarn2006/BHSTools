@@ -44,15 +44,13 @@
 - Str_DiagItem4
 	db '4 Exec Function ', 0
 - Str_DiagItem5
-	db '5 Write Memory  ', 0
+	db '5 Memory Editor ', 0
 - Str_DiagItem6
 	db '6 Execute Code  ', 0
 - Str_DiagItem7
 	db '7 Run Quick Code', 0
 - Str_DiagItem8
 	db '8 System Reset  ', 0
-- Str_DiagItem9
-	db '9 Memory Browser', 0
 - MnuTbl_Diag
 	dw 481Fh, 6
 	dw 480Eh, 6
@@ -62,7 +60,6 @@
 	dw &:Str_DiagItem6, &^Str_DiagItem6
 	dw &:Str_DiagItem7, &^Str_DiagItem7
 	dw &:Str_DiagItem8, &^Str_DiagItem8
-	dw &:Str_DiagItem9, &^Str_DiagItem9
 	dw 5E61h, 0
 
 @ 383E0

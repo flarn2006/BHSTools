@@ -3,15 +3,13 @@ jmpr cc_Z, diagbatt
 subb rl4, #3
 jmpr cc_Z, calladdr
 subb rl4, #1
-jmpr cc_Z, writemem
+jmpr cc_Z, mem_browser
 subb rl4, #1
 jmpr cc_Z, acexec
 subb rl4, #1
 jmpr cc_Z, dynexec
 subb rl4, #1
 jmpr cc_Z, reboot
-subb rl4, #1
-jmpr cc_Z, mem_browser
 jmps #3, #8546h
 
 diagbatt:
@@ -37,19 +35,11 @@ exts #&^scratch_mem, #1
 mov [r11], r5
 calls &+scratch_mem
 calls &+ShowDebugDump
+return_to_diag_menu:
 jmps &+return_to_diag_menu
 
-writemem:
-calls &+PromptForAddr
-jb r5.15, return_to_diag_menu
-mov r8, r5
-exts r8, #1
-movb rl5, [r4]
-movbz r5, rl5
-%PGETNUM r5, &+Str_EnterNewByte, #0, #0FFh, #3, r5, #0
-exts r8, #1
-movb [r4], rl5
-return_to_diag_menu:
+mem_browser:
+calls &+MemoryBrowser
 jmps &+return_to_diag_menu
 
 acexec:
@@ -58,10 +48,6 @@ jmps &+return_to_diag_menu
 
 dynexec:
 calls #9, #0
-jmps &+return_to_diag_menu
-
-mem_browser:
-calls &+MemoryBrowser
 jmps &+return_to_diag_menu
 
 arbitrary_code_exec:
