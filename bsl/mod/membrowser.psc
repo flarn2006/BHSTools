@@ -245,6 +245,7 @@ shift_toggle:
 	jmpa cc_UC, &:MemoryBrowser_MainLoop
 
 gotoaddr:
+	jb r13.8, moveback_edit
 	calls &+PromptForAddr
 	jb r5.15, cancelgoto
 	mov r15, r5
