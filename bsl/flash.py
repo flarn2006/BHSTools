@@ -93,6 +93,9 @@ def give_warning():
 	
 	return True
 
+if not give_warning():
+	sys.exit(254)
+
 try:
 	sectors = parse_range(sys.argv[3])
 except (IndexError, ValueError):
