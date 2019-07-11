@@ -116,8 +116,8 @@ except (IndexError, ValueError):
 	sys.exit(255)
 
 with Serial(sys.argv[1], baudrate=115200) as s:
-	bsl.init(s)
 	with open(sys.argv[2], 'rb') as f:
+		bsl.init(s)
 		addr = 0
 		for i in range(35):
 			if i in sectors:
