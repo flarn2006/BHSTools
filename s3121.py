@@ -59,6 +59,7 @@ def process_display_str(text):
 		out = ''
 		for b in text:
 			out += chr(b) if 32<=b<=126 else '.'
+		return out
 
 class Downloader(VirtDevice):
 	def __init__(self, ibus):
