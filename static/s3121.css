@@ -1,6 +1,6 @@
 @font-face {
-	font-family: Repetition;
-	src: url(repet___.ttf);
+	font-family: S3121;
+	src: url(s3121.ttf);
 }
 
 body {
@@ -72,11 +72,14 @@ small {
 	margin: 0.125in;
 	border: 0.25in inset #aaa;
 	border-radius: 0.0625in;
-	background-color: #00e357;
-	font-family: Repetition, monospace;
-	font-size: 20pt;
+	background-color: #9bf52b;
+	font-family: S3121, monospace;
+	font-size: 21px;
 	text-align: center;
 	resize: none;
+    width: 252px;
+    height: 115px;
+    overflow: hidden;
 }
 
 .top .keys {
