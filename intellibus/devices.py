@@ -62,7 +62,16 @@ class Programmer(Keypad):
 					self.curY = col - 1
 				if row > 0:
 					self.curX = row - 1
-				self.writestr(16*self.curY + self.curX, text)
-				self.curX += len(text)
+				if b'\b' in text:
+					for b in text:
+						if b == 8:
+							self.curX -= 1
+						else:
+							self.writestr(16*self.curY + self.curX, bytes([b]))
+							self.curX += 1
+				else:
+					# More efficient routine that doesn't support backspaces
+					self.writestr(16*self.curY + self.curX, text)
+					self.curX += len(text)
 				self.curY += self.curX // 16
 				self.curX %= 16
