@@ -66,15 +66,15 @@ If all goes well, a Web page will load with an interface resembling the official
 
 For more information on programming, refer to the [BHS-4000B installation manual](http://alpha.adt.com/content/dam/sop/sop/Product%20Knowledge/PanelPDFs/Install_Programming_Manual_4000B.pdf).
 
-### Bootstrap Loader
+### Taking full control
 
 The Infineon C161PI, which powers the BHS-3000 and BHS-4000 panels, contains a built-in Bootstrap Loader that allows for booting the system via a serial connection in place of the connected ROM chip. As I mentioned above, C161PI-based Brinks panels conveniently expose all the connections needed to do so on port J8. By sending custom boot code to the panel via this port, you can do pretty much anything you want with the system, including:
 
 * Creating a full dump of the panel's EEPROM (firmware + programming data)
 * Restoring a "bricked" panel by reflashing it*
-* Installing custom or modified firmware*
+* Modifying or replacing the panel's firmware*
 * Directly executing arbitrary code on the panel's CPU
 
 *\* Reflashing the boot sector may require a simple hardware modification, which consists of cutting a trace on the circuit board to disable write protection.*
 
-The `bsl` directory contains some tools designed to work with this mode. More information to come.
+The `bsl` directory contains some scripts for taking advantage of this functionality.
