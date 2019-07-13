@@ -387,6 +387,8 @@ class VirtDevice:
 					self.ibus.sync_reply(pkt.addr)
 					self.on_ping()
 			elif type(pkt) is Message:
+				if pkt.dest == self.addr:
+					self.ibus.sync_reply(pkt.dest)
 				cmd = pkt.getcmd()
 				arg = pkt.getarg()
 				if (cmd == 0xBB8 and self.addr == pkt.dest) or (cmd == 0xBBC and self.addr is None):
