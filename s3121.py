@@ -111,7 +111,7 @@ def start(bus):
 
 	pgm = devices.Programmer(bus)
 	dl = Downloader(bus)
-	kp = devices.IconKeypad(bus, fromhex('13 37 1D EC 0D ED'), 0x1337, (0,0))
+	kp = devices.IconKeypad(bus, fromhex('13 37 50 F7 31 01'), 0x1337, (0,0))
 	kp.addr = 0x7FFE
 	webthread.start()
 
