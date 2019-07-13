@@ -391,15 +391,15 @@ class VirtDevice:
 					self.ibus.sync_reply(pkt.dest)
 				cmd = pkt.getcmd()
 				arg = pkt.getarg()
-				if (cmd == 0xBB8 and self.addr == pkt.dest) or (cmd == 0xBBC and self.addr is None):
+				if (cmd == 3000 and self.addr == pkt.dest) or (cmd == 3004 and self.addr is None):
 					self.ibus.send(0, self.addr or 0, (0xBB9, self.serial_no + struct.pack('<HHHH', 0x100, self.model, self.kind, self.hdw_conf) + self.fw_ver), count=3)
-				elif cmd == 0xBBA:
+				elif cmd == 3002:
 					if arg[:6] == self.serial_no:
 						self.addr = struct.unpack('<H', arg[-2:])[0]
-						self.send_now(0xBBB, arg, count=3)
+						self.send_now(3003, arg, count=3)
 				elif pkt.dest == self.addr or 0x7000 <= pkt.dest <= 0x70FF:
-					if cmd == 0xBBF:
-						self.send(0xBC0, b'')
+					if cmd == 3007:
+						self.send(3008, b'')
 					elif synced:
 						self.handle_cmd(cmd, arg)
 	

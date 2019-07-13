@@ -11,7 +11,7 @@ class Keypad(VirtDevice):
 			keycode = self.keyqueue.get()[:2].rjust(2, '0')
 			if keycode.upper() in '3C BC 68 E8 3E BE 1B 9B 73 F3 08 88 2D AD 2B AB'.split(' '):
 				keycode = '1B ' + keycode
-			self.send_now(0x7E4, fromhex(keycode))
+			self.send_now(2020, fromhex(keycode))
 	
 	def key(self, keycode):
 		self.keyqueue.put(keycode)
@@ -24,7 +24,7 @@ class IconKeypad(Keypad):
 		self.lcd = [False] * 64
 	
 	def handle_cmd(self, cmd, arg):
-		if cmd == 0x7DA and len(arg) >= 9 and arg[0] == self.acct:
+		if cmd == 2010 and len(arg) >= 9 and arg[0] == self.acct:
 			for index in range(64):
 				byte = index // 8
 				bit = index % 8
@@ -45,7 +45,7 @@ class Programmer(Keypad):
 		self.display = dest[:index] + src[:len(dest)-index] + dest[index+len(src):]
 
 	def handle_cmd(self, cmd, arg):
-		if cmd == 0x7DC:
+		if cmd == 2012:
 			text = arg[3:].rstrip(b'\0')
 			if b'\x0c' in text:
 				self.display = b' '*16*4
