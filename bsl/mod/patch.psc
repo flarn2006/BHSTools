@@ -95,20 +95,3 @@
 # Include "TIME" in LCD keypad POST
 @ 68B5D
 	db 15
-
-#- DbgTrap @ 8F000
-	#< dbgtrap.asm
-
-#@ C4
-	#jmps &+DbgTrap
-
-#@ 43A2E
-	#trap #31h
-
-#@ 333F8
-	#trap #31h
-
-@ 4879A
-	cmp r14, #348h
-@ 487A0
-	mov r14, #1b8h
