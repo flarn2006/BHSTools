@@ -39,7 +39,7 @@ return_to_diag_menu:
 jmps &+return_to_diag_menu
 
 mem_browser:
-calls &+MemoryBrowser
+calls &+MemoryBrowser_Start
 jmps &+return_to_diag_menu
 
 acexec:

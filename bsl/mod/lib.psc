@@ -79,17 +79,4 @@
 	movbz r5, rl5
 	rets
 
-- Str_MBMemHdr
-	db 'MEMORY ', 0F9h, 'Goto ', 0C4h, 'Ed', 0
-
-- Fmt_MBEditHdr
-	db 'EDIT %1%03u %1%05u %1%c', 0
-
-- Fmt_MBMemAsc
-	db '%1%03X ............', 0
-
-- Fmt_MBMemRow
-	db '%1%03X:%1%04X%1%04X%1%04X', 0
-
-- MemoryBrowser
-	< membrowser.psc
+< membrowser.psc

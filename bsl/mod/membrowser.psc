@@ -1,14 +1,20 @@
-mov [-r0], r15
-mov [-r0], r14
-mov [-r0], r13
-mov r15, #41h
-mov r14, #0e562h
-mov r13, #0
-mov r4, #0
+- Str_MBMemHdr
+	db 'MEMORY ', 0F9h, 'Goto ', 0C4h, 'Ed', 0
 
-- MemoryBrowser_MainLoop
+- Fmt_MBEditHdr
+	db 'EDIT %1%03u %1%05u %1%c', 0
 
-	jnb r13.8, hdr_noedit
+- Fmt_MBMemAsc
+	db '%1%03X ............', 0
+
+- Fmt_MBMemRow
+	db '%1%03X:%1%04X%1%04X%1%04X', 0
+
+- Fmt_MBExecPrompt
+	db 'Call function at'
+	db 'address %1%02X%1%04X? ', 0
+
+- MemoryBrowser_GetSelAddr
 
 	mov r5, r15
 	mov r4, r13
@@ -16,6 +22,23 @@ mov r4, #0
 	shr r4, #1
 	add r4, r14
 	addc r5, #0
+	ret
+
+- MemoryBrowser_Start
+
+	mov [-r0], r15
+	mov [-r0], r14
+	mov [-r0], r13
+	mov r15, #41h
+	mov r14, #0e562h
+	mov r13, #0
+	mov r4, #0
+
+- MemoryBrowser_MainLoop
+
+	jnb r13.8, hdr_noedit
+
+	calla cc_UC, &:MemoryBrowser_GetSelAddr
 	exts r5, #1
 	movb rl7, [r4]
 	movbz r12, rl7
@@ -122,7 +145,7 @@ loadstack_loop:
 
 	add r0, #6
 
-	jnb r13.8, nocursor
+	jnb r13.8, get_key
 	mov r9, #83h
 	mov r8, r13
 	and r8, #0FFh
@@ -134,7 +157,7 @@ cursor_first_row:
 	add r8, #5
 	calls #3, #4F4h
 
-nocursor:
+get_key:
 	mov r8, #1
 	calls #3, #7DCh
 
@@ -152,11 +175,14 @@ nocursor:
 	jmpr cc_Z, gotoaddr
 	cmpb rl4, #13
 	jmpr cc_Z, edit_toggle
+	jnb r13.8, not_a_digit_key
 	cmpb rl4, #3Ah
 	jmpr cc_NC, not_a_digit_key
 	cmpb rl4, #30h
-	jmpr cc_NC, digit_key
+	jmpr cc_NC, digit_key_bridge
 not_a_digit_key:
+	cmpb rl4, #37h
+	jmpr cc_Z, exec_prompt
 	cmpb rl4, #1Bh
 	jmpa cc_NZ, &:MemoryBrowser_MainLoop
 	jb r13.8, edit_toggle
@@ -165,6 +191,11 @@ not_a_digit_key:
 	mov r14, [r0+]
 	mov r15, [r0+]
 	rets
+
+edit_toggle:
+	bmovn r13.8, r13.8
+	and r13, #0FD00h
+	jmpa cc_UC, &:MemoryBrowser_MainLoop
 
 moveup:
 	jb r13.8, moveup_edit
@@ -209,6 +240,11 @@ movedown_edit_lsn:
 	exts r5, #1
 	movb [r4], rl7
 	jmpa cc_UC, &:MemoryBrowser_MainLoop
+
+digit_key_bridge:
+	jmpr cc_UC, digit_key
+not_a_digit_key_bridge:
+	jmpr cc_UC, not_a_digit_key
 
 moveback:
 	jb r13.8, moveback_edit
@@ -255,27 +291,44 @@ cancelgoto:
 	%PPUTSTR &+Str_MBMemHdr, #1, #1
 	jmpa cc_UC, &:MemoryBrowser_MainLoop
 
-edit_toggle:
-	bmovn r13.8, r13.8
-	and r13, #0FD00h
+exec_prompt:
+	bclr r13.9
+	calla cc_UC, &:MemoryBrowser_GetSelAddr
+	bclr r4.0
+	mov r12, r5
+	mov [-r0], r5
+	mov [-r0], r4
+	mov r11, #&^Fmt_MBExecPrompt
+	mov r10, #&:Fmt_MBExecPrompt
+	mov r9, #&^scratch_mem
+	mov r8, #&:scratch_mem
+	calls #0, #3CC6h
+	mov r9, #&^scratch_mem
+	mov r8, #&:scratch_mem
+	calls &+pgmr_yesno
+	mov r8, [r0+]
+	mov r9, [r0+]
+	jnb r4.0, exec_canceled
+	push CSP
+	callr jmp_r9r8
+	calls &+ShowDebugDump
+exec_canceled:
 	jmpa cc_UC, &:MemoryBrowser_MainLoop
+jmp_r9r8:
+	push r9
+	push r8
+	rets
 
 digit_key:
-	jnb r13.8, not_editing
-	and r4, #0Fh
 	jnb r13.9, nonshifted_digit
-	cmp r4, #7
-	jmpr cc_NC, nonshifted_digit
+	cmp r4, #37h
+	jmpr cc_NC, not_a_digit_key_bridge
 	add r4, #9
 	bclr r13.9
 nonshifted_digit:
+	and r4, #0Fh
 	mov r7, r4
-	mov r5, r15
-	mov r4, r13
-	movbz r4, rl4
-	shr r4, #1
-	add r4, r14
-	addc r5, #0
+	calla cc_UC, &:MemoryBrowser_GetSelAddr
 	jb r13.0, digit_lsn
 	shl r7, #4
 	exts r5, #1
@@ -292,5 +345,4 @@ digit_lsn:
 	orb rh7, rl7
 	exts r5, #1
 	movb [r4], rh7
-not_editing:
 	jmpr cc_UC, movefwd_edit
