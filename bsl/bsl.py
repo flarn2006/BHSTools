@@ -313,3 +313,6 @@ def flash_erase(ser:Serial, sector_addr):
 		'D700{:02X}00'.format(sector_addr>>16),                # exts sector_addr>>16, #1
 		'F7F5'+tohex(struct.pack('<H', sector_addr & 0xFFFF))  # movb [sector_addr&0xFFFF], rh2
 	])))
+
+def boot(ser:Serial):
+	run(ser, fromhex('B748B7B7'), maxread=0)  # srst

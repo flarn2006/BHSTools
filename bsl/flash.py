@@ -143,4 +143,5 @@ with Serial(sys.argv[1], baudrate=115200) as s:
 					break
 			addr += sector_sizes[i]
 
-print('Complete.')
+	print('Finished; rebooting panel.')
+	bsl.boot(s)
