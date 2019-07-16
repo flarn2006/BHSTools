@@ -9,5 +9,4 @@ if len(sys.argv) < 2:
 	sys.exit(255)
 
 with Serial(sys.argv[1], 9600) as s:
-	bsl.init(s)
-	bsl.boot(s)
+	bsl.load_bsl(s, bsl.fromhex('B748B7B7') * 8)
