@@ -95,3 +95,11 @@
 # Include "TIME" in LCD keypad POST
 @ 68B5D
 	db 15
+
+# Hook IntelliBus RX
+@ 80500
+- Code_IBusHook
+	< ibushook.asm
+@ 21B8E
+	jmps &+Code_IBusHook
+	nop
