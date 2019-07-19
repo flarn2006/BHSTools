@@ -16,6 +16,10 @@
 @ 5DBEE
 	nop
 
+# Modify the displayed firmware version
+@ 20C
+	dw 474
+
 # Allow the user to press a key to skip the 2 second delay after entering the installer code
 # (Technically this NOPs a jump to force it to always use the SIA mode behavior here, which
 #  is to wait for a key with a 60 second timeout. It also changes this timeout to 2 seconds.)
