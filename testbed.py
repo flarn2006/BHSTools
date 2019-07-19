@@ -75,15 +75,6 @@ def onRX(cmd):
 		onRXlist[cmd] = f
 	return wrapper
 
-def hexdump(data):
-	if type(data) is int:
-		data = last[data]
-
-	for i in range(0, len(data), 16):
-		row = data[i:i+16]
-		asc = ''.join([chr(b) if chr(b).isprintable() else '.' for b in row])
-		print('{:04X}:  {:47s}  |{:16s}|'.format(i, tohex(row), asc))
-
 def poke(data, addr, new):
 	if type(data) is int:
 		data = last[data]

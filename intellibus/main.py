@@ -3,6 +3,7 @@ from crcmod.predefined import PredefinedCrc
 from serial import Serial
 from sys import stdout
 from queue import Queue
+from intellibus.util import *
 
 class Packet:
 	def __init__(self, data):
@@ -416,14 +417,3 @@ class VirtDevice:
 		while not self.outqueue.empty():
 			cmd, arg, kwargs = self.outqueue.get()
 			self.send_now(cmd, arg, **kwargs)
-
-def tohex(data):
-	return ' '.join(['{:02X}'.format(b) for b in data])
-
-def fromhex(text):
-	text = text.replace(' ', '')
-	if len(text) % 2 == 0:
-		split = [text[i:i+2] for i in range(0, len(text), 2)]
-		return bytes([int(h, 16) for h in split])
-	else:
-		raise ValueError('An even number of hex digits must be given.')
