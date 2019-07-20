@@ -10,10 +10,9 @@ def fromhex(text):
 		raise ValueError('An even number of hex digits must be given.')
 
 def hexdump(data):
-	if type(data) is int:
-		data = last[data]
-
+	out = ''
 	for i in range(0, len(data), 16):
 		row = data[i:i+16]
 		asc = ''.join([chr(b) if chr(b).isprintable() else '.' for b in row])
-		print('{:04X}:  {:47s}  |{:16s}|'.format(i, tohex(row), asc))
+		out += '{:04X}:  {:47s}  |{:16s}|\n'.format(i, tohex(row), asc)
+	return out

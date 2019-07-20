@@ -116,7 +116,10 @@ def upload_from_json(filename):
 		print('\nPanel restart aborted.')
 		print('Some uploaded programming may not take effect until you manually power cycle the panel.')
 
-hd = hexdump
+def hd(data):
+	if type(data) is int:
+		data = last[data]
+	print(hexdump(data))
 
 bus = Intellibus(argv[2], debug='tx,rx', dbgout=open('testbed/log.txt', 'a'))
 last={}

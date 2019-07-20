@@ -30,6 +30,10 @@ pw = tk.PanedWindow(orient=tk.VERTICAL)
 tbCode = tk.Text()
 tbOutput = tk.Text()
 
+def add_output(text):
+	tbOutput.insert(tk.END, '\n'+text)
+	tbOutput.see(tk.END)
+
 head = tk.Frame(relief=tk.SUNKEN, borderwidth=1)
 tk.Label(head, text='Reply opcode: ').pack(side=tk.LEFT)
 numReply = tk.Entry(head, width=5)
@@ -43,7 +47,7 @@ tk.Label(head, text=' byte(s)').pack(side=tk.LEFT)
 
 def on_rx(data):
 	global tbOutput
-	tbOutput.set(ib.hexdump(data))
+	add_output(ib.hexdump(data))
 
 reply_listener = ReplyListener(on_rx)
 bus.add_listener(reply_listener)
@@ -66,23 +70,29 @@ def process_code(code, opcode, datasize):
 def btnExec_click():
 	global reply_listener
 	code = tbCode.get('1.0', 'end')
+	add_output(code)
 	datasize = int(numSize.get())
 	reply_listener.opcode = int(numReply.get())
 	code = process_code(code, reply_listener.opcode, datasize)
 	bus.send(0, 0x7FFE, (31337, code))
 
+def btnClear_click():
+	tbOutput.delete('1.0', tk.END)
+
 def btnReset_click():
 	bus.send(0, 0x7FFE, (32, b''))
 
 btnExec = tk.Button(text='Execute', command=btnExec_click)
-btnReset = tk.Button(text='Reset', command=btnReset_click)
+btnClear = tk.Button(text='Clear Output', command=btnClear_click)
+btnReset = tk.Button(text='Reboot Panel', command=btnReset_click)
 
 head.grid(row=0, column=0, columnspan=2, sticky=W+E)
 pw.add(tbCode)
 pw.add(tbOutput)
 pw.grid(row=1, column=0, columnspan=2, sticky=N+E+W+S)
-btnReset.grid(row=2, column=0, sticky=W+E)
-btnExec.grid(row=2, column=1, sticky=W+E)
+btnClear.grid(row=2, column=0, sticky=W+E)
+btnReset.grid(row=3, column=0, sticky=W+E)
+btnExec.grid(row=2, column=1, rowspan=2, sticky=N+E+W+S)
 
 top.grid_rowconfigure(1, weight=1)
 top.grid_columnconfigure(0, weight=1)

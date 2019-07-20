@@ -14,8 +14,8 @@ if [ ! -f C166V???.EXE ]; then
 	exit 1
 fi
 
-set -e
 unzip -j C166V???.EXE c166/{asm/REG167.INC,bin/A166.EXE}
+set -e
 chmod +x A166.EXE
 
 cd mod

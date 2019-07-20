@@ -49,7 +49,7 @@ def assemble(code, base=0, header=''):
 
 	msg_if_error = 'An unknown error occurred during assembly.'
 	try:
-		output = subprocess.check_output(['./A166.EXE', 'TEMP.A66'], stderr=subprocess.STDOUT)
+		output = subprocess.check_output(['wine', './A166.EXE', 'TEMP.A66'], stderr=subprocess.STDOUT)
 	except subprocess.CalledProcessError as ex:
 		if len(ex.output) > 0:
 			try:

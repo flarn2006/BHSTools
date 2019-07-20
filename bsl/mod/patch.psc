@@ -107,3 +107,6 @@
 @ 21B8E
 	jmps &+Code_IBusHook
 	nop
+
+@ 5FD0D
+	db 2
