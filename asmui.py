@@ -5,10 +5,15 @@ from tkinter import N,E,W,S
 import bsl
 import intellibus as ib
 from threading import Thread
+import sys
 import os
 import struct
 
-bus = ib.Intellibus('/dev/ttyUSB2', debug='tx,rx')
+if len(sys.argv) < 2:
+	print('Usage: {} PORT'.format(sys.argv[0]), file=sys.stderr)
+	sys.exit(255)
+
+bus = ib.Intellibus(sys.argv[1], debug='tx,rx')
 thr = Thread(target=bus.run)
 thr.start()
 os.chdir('bsl')
