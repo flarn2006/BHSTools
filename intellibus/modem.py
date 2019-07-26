@@ -1,3 +1,4 @@
+from Crypto.Cipher import DES
 from intellibus import *
 
 class ModemInterface(BasicInterface):
@@ -47,28 +48,42 @@ class VivaldiPacket(Packet):
 		self.sync_byte = (sync[0] << 5) | (sync[1] << 2) | (2 if len(body) == 0 else 0)
 	
 	def gen_data(self):
-		return struct.pack('<IBB', panel_id, sync_byte, 0) + self.body
+		return struct.pack('<IBB', self.panel_id, self.sync_byte, 0) + self.body
 
 class VivaldiMessage(VivaldiPacket):
 	def __init__(self, msg, des_key=None, panel_id=0xFFFFFFFF, sync=(0, 0)):
 		if type(msg) is tuple:
 			self.msg = struct.pack('<HH', len(msg[1])+4, msg[0]) + msg[1]
+			encrypt_msg_if_needed = True
 		else:
 			self.msg = msg
+			encrypt_msg_if_needed = False
 		self.des_key = des_key
-		self.flags = 4 if des_key is None else 0x84
+		
+		if des_key is None:
+			self.flags = 4
+			self.cleartext = self.msg
+		else:
+			self.flags = 0x84
+			self.cipher = DES.new(fromhex(des_key), DES.MODE_ECB)
+			if encrypt_msg_if_needed:
+				self.cleartext = self.msg
+				self.msg = self.cipher.encrypt(self.msg)
+			else:
+				self.cleartext = self.cipher.decrypt(self.msg)
+
 		body = bytes([self.flags]) + self.msg
-		super().__init__(self, body, panel_id=panel_id, sync=sync)
+		super().__init__(body, panel_id=panel_id, sync=sync)
 	
 	def __repr__(self):
 		return '<({:02o}) {:08X}:{:5} [ {} ] >'.format(self.sync_byte>>2, self.panel_id, self.getcmd(), tohex(self.getarg()))
 		
 	def getcmd(self):
-		return self.cmd
+		return struct.unpack('<H', self.cleartext[2:4])[0]
 	
 	def getarg(self):
-		#TODO: Decrypt DES-ECB if necessary
-		return self.arg
+		msg_length = struct.unpack('<H', self.cleartext[:2])[0]
+		return self.cleartext[4:msg_length]  # msg_length includes the 4 header bytes
 
 class VivaldiSession(Connection):
 	def __init__(self, iface, panel_id=None, **kwargs):
