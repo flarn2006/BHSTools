@@ -317,7 +317,6 @@ class Intellibus(Connection):
 	
 	def read(self):
 		pkt, _ = super().read()
-		self.output_debug(pkt, False)
 		isSynced = True
 		if type(pkt) is SyncPing:
 			self.sync(pkt.addr).receive(pkt)
