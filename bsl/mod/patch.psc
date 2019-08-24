@@ -103,3 +103,16 @@
 @ 21B8E
 	jmps &+Code_IBusHook
 	nop
+
+# Reorder letters/symbols, and add more symbols
+@ 68758
+	db '0,.()?', 0
+	db '1_*-!', 27h, 0
+	db '2AB"/C', 0
+	db '3DE=:F', 0
+	db '4GH$;I', 0
+	db '5JK%1%&L', 0
+	db '6MN+@O', 0
+	db '7PQ<RS', 0
+	db '8TU|#V', 0
+	db '9WX>YZ', 0
