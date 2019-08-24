@@ -25,9 +25,17 @@ except FileNotFoundError:
 	print('If that string only appears once, there is no need to do anything.', file=sys.stderr)
 	sys.exit(1)
 
+def mirror_address(address):
+	mirror = address + 0xC0000
+	if address >= 0x10000:
+		mirror -= 0x2000
+	return mirror
+
 def patchbytes(data, offset, replacement):
 	patch_end = offset + len(replacement)
-	return data[:offset] + replacement + data[patch_end:]
+	mirror = mirror_address(offset)
+	mirror_end = mirror + len(replacement)
+	return data[:offset] + replacement + data[patch_end:mirror] + replacement + data[mirror_end:]
 
 def preprocess_asm_line(line):
 	def fmt_const(num):
