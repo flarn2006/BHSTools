@@ -71,6 +71,11 @@
 @ 80100
 - Str_EnterNewByte
 	db 'New byte (0-255)', 0
+- Str_DynExecError
+	db 'NO CODE LOADED  '
+	db 'Use BHSTools/bsl'
+	db '/dynload.py to  '
+	db 'upload via BSL.', 0
 - Str_ArbCodeExec
 	db 'Enter up to 16 B', 0
 - Code_DiagMenuHook

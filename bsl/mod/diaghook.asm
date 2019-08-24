@@ -47,7 +47,20 @@ callr arbitrary_code_exec
 jmps &+return_to_diag_menu
 
 dynexec:
+exts #9, #1
+mov r4, 0
+cmp r4, #0FFFFh
+jmpr cc_Z, dynexec_error
 calls #9, #0
+jmps &+return_to_diag_menu
+
+dynexec_error:
+calls #3, #33Eh ;clear screen
+mov r9, #&^Str_DynExecError
+mov r8, #&:Str_DynExecError
+calls #3, #2F0h ;print string at 0,0
+mov r8, #60
+calls #3, #7DCh ;get key
 jmps &+return_to_diag_menu
 
 arbitrary_code_exec:
