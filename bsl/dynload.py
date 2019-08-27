@@ -45,8 +45,10 @@ if bsl.readmem(ser, sector, 2) == b'\xff\xff':
 
 print('Looking for address...')
 addr = 0
+addrbits = bsl.readmem(ser, sector+0x100, 0xF00)
 for i in range(0x100, 0x1000, 2):
-	data = bsl.readmem(ser, sector + i, 2)
+	dataindex = i - 0x100
+	data = addrbits[dataindex:dataindex+2]
 	print('0x{:X} = {}'.format(i, bsl.tohex(data)))
 	word = 256 * data[1] + data[0]
 	if word > 0:
