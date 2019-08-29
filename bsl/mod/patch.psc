@@ -121,3 +121,7 @@
 	db '7PQ<RS', 0
 	db '8TU|#V', 0
 	db '9WX>YZ', 0
+
+# Allow deleting devices without first disconnecting them (or waiting for it to detect that they were disconnected)
+@ 170FC
+	jmpa cc_UC, 711Ch
