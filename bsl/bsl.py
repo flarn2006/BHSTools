@@ -311,7 +311,11 @@ def flash_erase(ser:Serial, sector_addr):
 		'F7F2AA0A',                                            # movb 0aaah, rl1
 		'F7F35505',                                            # movb 0555h, rh1
 		'D700{:02X}00'.format(sector_addr>>16),                # exts sector_addr>>16, #1
-		'F7F5'+tohex(struct.pack('<H', sector_addr & 0xFFFF))  # movb [sector_addr&0xFFFF], rh2
+		'F7F5'+tohex(struct.pack('<H', sector_addr & 0xFFFF)), # movb [sector_addr&0xFFFF], rh2
+		# wait:
+		'D700{:02X}00'.format(sector_addr>>16),                # exts sector_addr>>16, #1
+		'F2F3'+tohex(struct.pack('<H', sector_addr & 0xFFFF)), # mov r3, [sector_addr&0xFFFF]
+		'9AF3FA70'                                             # jnb r3.7, wait
 	])))
 
 def boot(ser:Serial):

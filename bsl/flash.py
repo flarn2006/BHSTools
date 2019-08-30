@@ -129,7 +129,6 @@ with Serial(sys.argv[1], baudrate=115200) as s:
 				newdata = f.read(sector_sizes[i])
 				print(' - Erasing...')
 				bsl.flash_erase(s, addr)
-				sleep(7)  # Maximum erase time as listed in AM29F160DB datasheet
 				print(' - Programming...')
 				if sector_sizes[i] > 0x8000:
 					bsl.flash_write(s, addr, newdata[:0x8000])
