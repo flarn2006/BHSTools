@@ -48,7 +48,7 @@
 - Str_DiagItem6
 	db '6 Execute Code  ', 0
 - Str_DiagItem7
-	db '7 Run Quick Code', 0
+	db '7 Run Loaded ASM', 0
 - Str_DiagItem8
 	db '8 System Reset  ', 0
 - MnuTbl_Diag
