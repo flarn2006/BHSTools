@@ -98,6 +98,7 @@
 	db 0C4h, ':Cmd'
 
 # Include "TIME" in LCD keypad POST
+# (This will only have an effect if the patch to disable POST is removed.)
 @ 68B5D
 	db 15
 
@@ -125,3 +126,7 @@
 # Allow deleting devices without first disconnecting them (or waiting for it to detect that they were disconnected)
 @ 170FC
 	jmpa cc_UC, 711Ch
+
+# Disable keypad POST
+@ 4375A
+	jmpa cc_UC, 3832h
