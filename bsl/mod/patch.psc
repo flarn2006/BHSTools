@@ -130,3 +130,19 @@
 # Disable keypad POST
 @ 4375A
 	jmpa cc_UC, 3832h
+
+# Replace Options jump table
+@ 80600
+- Code_OptionsJumpTable
+	< options_jmp.psc
+
+@ 2DDDE
+	jmps &+Code_OptionsJumpTable
+
+# Per above, add room for an extra item before Area#
+@ 2DD5C
+	addb rl4, #2
+@ 2DC7C
+	movb rl4, #6
+@ 2F272
+	cmpb rl4, #6
