@@ -67,7 +67,6 @@ if addr > 0x1000:
 if addr == 0 or addr + len(code) > 0x10000:
 	print('No more space! Erasing sector...')
 	bsl.flash_erase(ser, sector)
-	sleep(7)
 	flash_bootcode()
 	addr = 0x1000
 	bitaddr = 0x100
