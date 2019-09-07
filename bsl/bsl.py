@@ -112,7 +112,9 @@ def load_stg1(ser:Serial, program:bytes):
 
 def init(ser:Serial):
 	pgm = fromhex(''.join([
+		'D100',      # atomic #1
 		'0A86FFAF',  # bfldl BUSCON0, #0FFh, #0AFh
+		'D100',      # atomic #1
 		'1A8604D6',  # bfldh BUSCON0, #0D6h, #4
 		'E60C0540',  # mov ADDRSEL1, #4005h
 		'E68A0F04',  # mov BUSCON1, #40Fh
