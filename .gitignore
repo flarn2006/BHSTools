@@ -3,6 +3,8 @@ __pycache__
 *.pgm
 testbed/log.txt
 testbed/port.txt
+testbed-modem/log.txt
+testbed-modem/port.txt
 bsl/firmware.bin
 bsl/ram.bin
 bsl/TEMP.*

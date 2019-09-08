@@ -1,0 +1,5 @@
+screen -t "Python" sh testbed-modem/left.sh
+split -v
+focus
+screen -t "Log" tail -f testbed-modem/log.txt
+focus
