@@ -1,8 +1,10 @@
+#!/usr/bin/python3 -i
 import os
 import os.path
 from serial import Serial
 import struct
 import subprocess
+import sys
 
 def tohex(data):
 	return ' '.join(['{:02X}'.format(b) for b in data])
@@ -322,3 +324,13 @@ def flash_erase(ser:Serial, sector_addr):
 
 def boot(ser:Serial):
 	run(ser, fromhex('B748B7B7'), maxread=0)  # srst
+
+if __name__ == '__main__':
+	fh = fromhex
+	th = tohex
+	try:
+		s = Serial(sys.argv[1], baudrate=115200)
+		print(sys.argv[1] + " now accessible via variable 's'")
+		print("Don't forget to do init(s)")
+	except IndexError:
+		pass
