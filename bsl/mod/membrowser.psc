@@ -31,6 +31,9 @@
 	mov [-r0], r13
 	mov r15, #41h
 	mov r14, #0e562h
+	mov [-r0], r15
+	mov [-r0], r14
+	mov r14, #0f000h
 	mov r13, #0
 	mov r4, #0
 
@@ -182,11 +185,14 @@ get_key:
 	jmpr cc_NC, digit_key_bridge
 not_a_digit_key:
 	cmpb rl4, #37h
-	jmpr cc_Z, exec_prompt
+	jmpa cc_Z, exec_prompt
+	cmpb rl4, #39h
+	jmpa cc_Z, swapaddr
 	cmpb rl4, #1Bh
 	jmpa cc_NZ, &:MemoryBrowser_MainLoop
 	jb r13.8, edit_toggle
 
+	add r0, #4
 	mov r13, [r0+]
 	mov r14, [r0+]
 	mov r15, [r0+]
@@ -308,16 +314,26 @@ exec_prompt:
 	calls &+pgmr_yesno
 	mov r8, [r0+]
 	mov r9, [r0+]
-	jnb r4.0, exec_canceled
+	jnb r4.0, back_to_main_loop
 	push CSP
 	callr jmp_r9r8
 	calls &+ShowDebugDump
-exec_canceled:
+back_to_main_loop:
 	jmpa cc_UC, &:MemoryBrowser_MainLoop
 jmp_r9r8:
 	push r9
 	push r8
 	rets
+
+swapaddr:
+	bclr r13.9
+	mov r5, [r0+#2]
+	mov r4, [r0]
+	mov [r0+#2], r15
+	mov [r0], r14
+	mov r15, r5
+	mov r14, r4
+	jmpr cc_UC, back_to_main_loop
 
 digit_key:
 	jnb r13.9, nonshifted_digit
