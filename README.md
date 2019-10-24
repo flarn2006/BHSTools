@@ -9,6 +9,7 @@
 *Also, please do not use my software on any equipment unless you own it, or otherwise have authorization from the owner, and make sure the owner is aware of the above disclaimer before proceeding. My intention is to make it possible to program one's own security equipment without hard-to-find hardware, as well as share technical discoveries about Brinks security equipment. My intention is NOT to aid in unauthorized tampering with security equipment.*
 
 *The same applies to my work-in-progress implementation of the Vivaldi modem protocol. I am developing it for the purpose of personal experimentation, and am making it public for the use of anyone who is interested in the same, or has other legitimate uses for it. I am not sure whether or not this protocol can be used in a harmful way, but if it can, I do NOT encourage any such use. You take sole responsibility for your use of this software, so if you use it, do so responsibly. If anyone, including but not limited to ADT employees, is aware of any specific security concerns, you are encouraged to contact me about it; my email address is flarn2006@gmail.com.*
+
 ----
 
 ## How to program your panel
