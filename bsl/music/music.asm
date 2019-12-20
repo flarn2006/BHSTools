@@ -29,6 +29,7 @@ jmpr cc_UC, delay
 done:
 bclr T3CON.6
 bclr T3CON.10
+mov 09EB4h, ZEROS
 mov r14, [r0+]
 mov r13, [r0+]
 rets
