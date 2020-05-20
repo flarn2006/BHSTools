@@ -81,6 +81,6 @@ The Infineon C161PI, which powers the BHS-3000 and BHS-4000 panels, contains a b
 * Modifying or replacing the panel's firmware*
 * Directly executing arbitrary code on the panel's CPU
 
-*\* Reflashing the boot sector may require a simple hardware modification, which consists of cutting a trace on the circuit board to disable write protection.*
+*\* Reflashing the boot sector **may** require a simple hardware modification, which consists of cutting a trace on the circuit board to disable write protection. Most likely it does not; I performed said modification as one step in trying to figure it out, and never tried flashing the boot sector on a board without it.*
 
 The `bsl` directory contains some scripts for taking advantage of this functionality.
