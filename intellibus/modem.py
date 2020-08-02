@@ -9,7 +9,7 @@ class ModemInterface(BasicInterface):
 		self.serial = Serial(port=port, baudrate=baudrate)
 		self.connected = False
 		self.so_far = b''
-		self.answer = answer
+		self.auto_answer = answer
 		self.hangup_in_progress = False
 		self.msg_callback = msg_callback
 	
@@ -30,7 +30,7 @@ class ModemInterface(BasicInterface):
 			return b
 		elif len(self.so_far) > 0 and self.so_far[-1] in b'\n\r':
 			if self.so_far[:-1] == b'RING':
-				if self.answer:
+				if self.auto_answer:
 					self._msg_out('Ring! (Hello?)')
 					self.serial.write(b'ATA\r\n')
 				else:
@@ -51,6 +51,9 @@ class ModemInterface(BasicInterface):
 	def send_bytes(self, data):
 		if not self.hangup_in_progress:
 			self.serial.write(data)
+	
+	def answer(self):
+		self.serial.write(b'ATA\r\n')
 	
 	def dial(self, number):
 		self.serial.write('ATDT{}\r\n'.format(number).encode('ascii'))
