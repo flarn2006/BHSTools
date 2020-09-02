@@ -168,9 +168,6 @@ class VivaldiSession(Connection):
 		#TODO: add actual check
 		return True
 	
-	def offset_next_sync(self, a, b):
-		self.next_sync = ((self.next_sync[0] + a) & 7, (self.next_sync[1] + b) & 7)
-	
 	def read(self):
 		pkt, _ = super().read()
 		if type(pkt) is VivaldiMessage:
@@ -181,26 +178,17 @@ class VivaldiSession(Connection):
 			else:
 				if pkt.getcmd() == 4:
 					self.des_key = pkt.getarg().rstrip(b'\0').decode('ascii')
-			if self.is_server:
-				self.offset_next_sync(1, 0)
-			else:
-				self.offset_next_sync(0, 1)
 			sleep(.5)
-			self.send_sync()
 			self.waiting_for_sync = True
 		else:
 			if not self.is_server:
 				self.next_sync = (self.next_sync[0], pkt.sync[0])
-
-			if self.last_message_by_me:
-				sleep(.5)
-				#self.send_sync(min(pkt.sync[1] + 1, 2))
-				self.send_raw(VivaldiPacket(panel_id=self.panel_id, sync=(self.next_sync[1], (pkt.sync[1]+1)%3)))
-				sleep(.5)
-				self.send_next()
 			self.waiting_for_sync = False
 
 		return pkt, True
+	
+	def sync(self, a, b):
+		self.send_raw(VivaldiPacket(panel_id=self.panel_id, sync=(a, b)))
 	
 	def send_sync(self, status=2):
 		s = self.next_sync[0 if self.is_server else 1]
