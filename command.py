@@ -154,7 +154,8 @@ class CommandSender(VirtDevice):
 	def handle_cmd(self, cmd, arg):
 		if cmd in self.response_cmds:
 			if self.response_out:
-				print(tohex(arg))
+				print()
+				print(hexdump(arg))
 			bus.stop()
 
 try:
