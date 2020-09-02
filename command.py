@@ -43,7 +43,7 @@ def arg_two_words_le(description, offset=0):
 def arg_db_entry(args):
 	if len(args[0]) > 16:
 		raise ValueError('Database filename must be 16 bytes or less.')
-	return args[0].decode('ascii').ljust(16, b'\0') + int(args[1]).to_bytes(2, 'little')
+	return args[0].encode('ascii').ljust(16, b'\0') + int(args[1]).to_bytes(2, 'little')
 
 @arg_description('[YYYY-MM-DD hh:mm:ss]')
 def arg_date_time(args):
