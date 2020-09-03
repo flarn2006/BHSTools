@@ -36,7 +36,7 @@ def arg_num_le(size, description, offset=0):
 def arg_two_words_le(description, offset=0):
 	@arg_description(description)
 	def func(args):
-		return (int(args[0]) + offset).to_bytes(size, 'little') + (int(args[1]) + offset).to_bytes(size, 'little')
+		return (int(args[0]) + offset).to_bytes(2, 'little') + (int(args[1]) + offset).to_bytes(2, 'little')
 	return func
 
 @arg_description('db_filename record#')
@@ -55,9 +55,9 @@ def arg_date_time(args):
 
 @arg_description('Acct# Zone# 0|1')
 def arg_zone_bypass(args):
-	if args[3] not in ('0', '1'):
+	if args[2] not in ('0', '1'):
 		raise ValueError('You must specify either 0 (not bypassed) or 1 (bypassed).')
-	return arg_two_words_le('', -1)(args[:2])[:3] + (ord(args[3]) - ord('0'))
+	return arg_two_words_le('', -1)(args[:2])[:3] + bytes([ord(args[2]) - ord('0')])
 
 @arg_description('Input# [fjlmst]  (F)ault (J)am (L)owBatt (M)iss (S)upervisory (T)amper')
 def arg_input_status(args):
