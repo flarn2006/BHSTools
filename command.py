@@ -101,8 +101,8 @@ command_info = {
 	313:	('Request Input Config Upload', [213, 513], True, arg_num_le(2, 'Input#', -1)),
 	317:	('Request COM Port Config Upload', [217, 517], True, arg_num_le(2, 'Port#', -1)),
 	318:	('Request Script Config Upload', [318, 518], True, arg_num_le(2, 'Script#', -1)),
-	401:	('Delete Communicator', [601], False, arg_num_le('Comm#', -1)),
-	402:	('Delete Account', [602], False, arg_num_le('Acct#', -1)),
+	401:	('Delete Communicator', [601], False, arg_num_le(2, 'Comm#', -1)),
+	402:	('Delete Account', [602], False, arg_num_le(2, 'Acct#', -1)),
 	403:	('Delete Keypad Config', [603], False, arg_num_le(2, 'Keypad#', -1)),
 	404:	('Delete Alarm Output Config', [604], False, arg_num_le(2, 'AlarmOut#', -1)),
 	406:	('Delete Output Config', [606], False, arg_num_le(2, 'Output#', -1)),
@@ -178,7 +178,7 @@ except (KeyError, ValueError):
 try:
 	arg = arg_func(sys.argv[3:])
 except ValueError as ex:
-	print('Error parsing arguments: {}'.format(ex), sys.stderr)
+	print('Error parsing arguments: {}'.format(ex), file=sys.stderr)
 	exit(255)
 
 bus = Intellibus(port, debug='tx,rx', dbgout=sys.stderr)
