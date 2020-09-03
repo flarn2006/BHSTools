@@ -125,7 +125,7 @@ command_info = {
 	16:		('Echo Test', [17], fmt_hexdump, arg_hex_raw),
 	20:		('Request Next Config Record', cmd20_replies, fmt_upload, arg_empty),
 	22:     ('Restart Upload', [22], None, arg_empty),
-	90:		('Request Database Entry', [91], fmt_hexdump, arg_db_entry),
+	90:		('Request Database Entry', [91], fmt_db_entry, arg_db_entry),
 	300:	('Request Panel Config Upload', [200], fmt_upload, arg_hex_raw),
 	301:	('Request Communicator Config Upload', [201, 501], fmt_upload, arg_num_le(2, 'Comm#', -1)),
 	302:	('Request Account Config Upload', [202, 502], fmt_upload, arg_num_le(2, 'Acct#', -1)),
