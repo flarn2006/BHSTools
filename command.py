@@ -50,7 +50,7 @@ def arg_date_time(args):
 	if len(args) == 0:
 		dt = time.localtime(time.time())
 	else:
-		dt = strptime(' '.join(args), '%Y-%m-%d %H:%M:%S')
+		dt = time.strptime(' '.join(args), '%Y-%m-%d %H:%M:%S')
 	return struct.pack('<BBBBHH', dt.tm_sec, dt.tm_min, dt.tm_hour, dt.tm_mday, dt.tm_mon, dt.tm_year)
 
 @arg_description('Acct# Zone# 0|1')
@@ -81,53 +81,74 @@ def arg_yes(args):
 	else:
 		raise ValueError('To confirm resetting all programming to defaults, you must type a literal "Yes" as the only argument to this command. It is case-sensitive, but quotes are not necessary.')
 
+def fmt_hexdump(cmd, arg):
+	return hexdump(arg)
+
+def fmt_upload(cmd, arg):
+	if cmd == 21:
+		return 'No more records to download.'
+	elif 200 <= cmd <= 299:
+		return fmt_hexdump(cmd, arg)
+	elif 500 <= cmd <= 599:
+		return 'Record not found.'
+
+def fmt_db_entry(cmd, arg):
+	if arg == b'\xF9\0':
+		return 'Database entry not found.'
+	else:
+		return fmt_hexdump(cmd, arg)
+
+def fmt_datetime(cmd, arg):
+	dt = struct.unpack('<BBBBBBH', arg)
+	return '{6}-{4:02}-{3:02} {2:02}:{1:02}:{0:02}'.format(*dt)
+
 cmd20_replies = [21, 200, 201, 202, 203, 204, 206, 207, 208, 209, 210, 211, 212, 213, 215, 217, 218]
 command_info = {
-	#:		(Name, Response#, Output?, ArgParser)
-	6:		('Set Host Panel ID', [7], False, arg_hex_le(4, 'ID')),
-	16:		('Echo Test', [17], True, arg_hex_raw),
-	20:		('Request Next Config Record', cmd20_replies, True, arg_empty),
-	22:     ('Restart Upload', [22], False, arg_empty),
-	90:		('Request Database Entry', [91], True, arg_db_entry),
-	300:	('Request Panel Config Upload', [200], True, arg_hex_raw),
-	301:	('Request Communicator Config Upload', [201, 501], True, arg_num_le(2, 'Comm#', -1)),
-	302:	('Request Account Config Upload', [202, 502], True, arg_num_le(2, 'Acct#', -1)),
-	303:	('Request Keypad Config Upload', [203, 503], True, arg_num_le(2, 'Keypad#', -1)),
-	304:	('Request Alarm Output Config Upload', [204, 504], True, arg_num_le(2, 'AlarmOut#', -1)),
-	307:	('Request Area Config Upload', [207, 507], True, arg_num_le(2, 'Acct#', -1)),
-	308:	('Request User Config Upload', [208, 508], True, arg_two_words_le('Acct# User#', -1)),
-	309:	('Request Zone Config Upload', [209, 509], True, arg_two_words_le('Acct# Zone#', -1)),
-	311:	('Request Device Config Upload', [211, 511], True, arg_num_le(2, 'Device#', -1)),
-	313:	('Request Input Config Upload', [213, 513], True, arg_num_le(2, 'Input#', -1)),
-	317:	('Request COM Port Config Upload', [217, 517], True, arg_num_le(2, 'Port#', -1)),
-	318:	('Request Script Config Upload', [318, 518], True, arg_num_le(2, 'Script#', -1)),
-	401:	('Delete Communicator', [601], False, arg_num_le(2, 'Comm#', -1)),
-	402:	('Delete Account', [602], False, arg_num_le(2, 'Acct#', -1)),
-	403:	('Delete Keypad Config', [603], False, arg_num_le(2, 'Keypad#', -1)),
-	404:	('Delete Alarm Output Config', [604], False, arg_num_le(2, 'AlarmOut#', -1)),
-	406:	('Delete Output Config', [606], False, arg_num_le(2, 'Output#', -1)),
-	407:	('Delete Area', [607], False, arg_num_le(2, 'Acct#', -1)),
-	408:	('Delete User', [608], False, arg_two_words_le('Acct# User#', -1)),
-	409:	('Delete Zone', [609], False, arg_two_words_le('Acct# Zone#', -1)),
-	411:	('Delete Device', [611], False, arg_num_le(2, 'Device#', -1)),
-	413:	('Delete Input Config', [613], False, arg_num_le(2, 'Input#', -1)),
-	417:	('Delete COM Port Config', [617], False, arg_num_le(2, 'Port#', -1)),
-	418:	('Delete Script', [618], False, arg_num_le(2, 'Script#', -1)),
-	700:	('Request Panel Status', [800], False, arg_empty),
-	702:	('Request Account Status', [802], False, arg_num_le(2, 'Acct#', -1)),
-	704:	('Request Alarm Output Status', [804], False, arg_num_le(2, 'AlarmOut#', -1)),
-	709:	('Request Zone Status', [809], False, arg_two_words_le('Acct# Zone#', -1)),
-	711:	('Request Device Status', [811], False, arg_num_le(2, 'Device#', 1)),
-	720:	('Request Unknown Status', [820], False, arg_empty),
-	1000:	('Arm System', [1100], False, arg_hex_raw),
-	1001:	('Disarm System', [1101], False, arg_hex_raw),
-	1002:	('Set Date/Time', [1102], False, arg_date_time),
-	1003:	('Get Date/Time', [1103], True, arg_empty),
-	1005:	('Set Zone Bypass', [1105], False, arg_zone_bypass),
-	2030:	('Set Input Status', [], False, arg_input_status),
-	4000:	('Read Analog Inputs', [4001], True, arg_empty),
-	4002:	('Test Panel Outputs', [], False, arg_hex_le(1, 'bitfield')),
-	4011:	('Set Defaults (Brinks)', [], False, arg_yes)
+	#:		(Name, Response#, ResponseFormatter, ArgParser)
+	6:		('Set Host Panel ID', [7], None, arg_hex_le(4, 'ID')),
+	16:		('Echo Test', [17], fmt_hexdump, arg_hex_raw),
+	20:		('Request Next Config Record', cmd20_replies, fmt_upload, arg_empty),
+	22:     ('Restart Upload', [22], None, arg_empty),
+	90:		('Request Database Entry', [91], fmt_hexdump, arg_db_entry),
+	300:	('Request Panel Config Upload', [200], fmt_upload, arg_hex_raw),
+	301:	('Request Communicator Config Upload', [201, 501], fmt_upload, arg_num_le(2, 'Comm#', -1)),
+	302:	('Request Account Config Upload', [202, 502], fmt_upload, arg_num_le(2, 'Acct#', -1)),
+	303:	('Request Keypad Config Upload', [203, 503], fmt_upload, arg_num_le(2, 'Keypad#', -1)),
+	304:	('Request Alarm Output Config Upload', [204, 504], fmt_upload, arg_num_le(2, 'AlarmOut#', -1)),
+	307:	('Request Area Config Upload', [207, 507], fmt_upload, arg_num_le(2, 'Acct#', -1)),
+	308:	('Request User Config Upload', [208, 508], fmt_upload, arg_two_words_le('Acct# User#', -1)),
+	309:	('Request Zone Config Upload', [209, 509], fmt_upload, arg_two_words_le('Acct# Zone#', -1)),
+	311:	('Request Device Config Upload', [211, 511], fmt_upload, arg_num_le(2, 'Device#', -1)),
+	313:	('Request Input Config Upload', [213, 513], fmt_upload, arg_num_le(2, 'Input#', -1)),
+	317:	('Request COM Port Config Upload', [217, 517], fmt_upload, arg_num_le(2, 'Port#', -1)),
+	318:	('Request Script Config Upload', [318, 518], fmt_upload, arg_num_le(2, 'Script#', -1)),
+	401:	('Delete Communicator', [601], None, arg_num_le(2, 'Comm#', -1)),
+	402:	('Delete Account', [602], None, arg_num_le(2, 'Acct#', -1)),
+	403:	('Delete Keypad Config', [603], None, arg_num_le(2, 'Keypad#', -1)),
+	404:	('Delete Alarm Output Config', [604], None, arg_num_le(2, 'AlarmOut#', -1)),
+	406:	('Delete Output Config', [606], None, arg_num_le(2, 'Output#', -1)),
+	407:	('Delete Area', [607], None, arg_num_le(2, 'Acct#', -1)),
+	408:	('Delete User', [608], None, arg_two_words_le('Acct# User#', -1)),
+	409:	('Delete Zone', [609], None, arg_two_words_le('Acct# Zone#', -1)),
+	411:	('Delete Device', [611], None, arg_num_le(2, 'Device#', -1)),
+	413:	('Delete Input Config', [613], None, arg_num_le(2, 'Input#', -1)),
+	417:	('Delete COM Port Config', [617], None, arg_num_le(2, 'Port#', -1)),
+	418:	('Delete Script', [618], None, arg_num_le(2, 'Script#', -1)),
+	700:	('Request Panel Status', [800], fmt_hexdump, arg_empty),
+	702:	('Request Account Status', [802], fmt_hexdump, arg_num_le(2, 'Acct#', -1)),
+	704:	('Request Alarm Output Status', [804], fmt_hexdump, arg_num_le(2, 'AlarmOut#', -1)),
+	709:	('Request Zone Status', [809], fmt_hexdump, arg_two_words_le('Acct# Zone#', -1)),
+	711:	('Request Device Status', [811], fmt_hexdump, arg_num_le(2, 'Device#', 1)),
+	720:	('Request Unknown Status', [820], fmt_hexdump, arg_empty),
+	1000:	('Arm System', [1100], None, arg_hex_raw),
+	1001:	('Disarm System', [1101], None, arg_hex_raw),
+	1002:	('Set Date/Time', [1102], None, arg_date_time),
+	1003:	('Get Date/Time', [1103], fmt_datetime, arg_empty),
+	1005:	('Set Zone Bypass', [1105], None, arg_zone_bypass),
+	2030:	('Set Input Status', [], None, arg_input_status),
+	4000:	('Read Analog Inputs', [4001], fmt_hexdump, arg_empty),
+	4002:	('Test Panel Outputs', [], None, arg_hex_le(1, 'bitfield')),
+	4011:	('Set Defaults (Brinks)', [], None, arg_yes)
 }
 
 class CommandSender(VirtDevice):
@@ -153,9 +174,9 @@ class CommandSender(VirtDevice):
 	
 	def handle_cmd(self, cmd, arg):
 		if cmd in self.response_cmds:
-			if self.response_out:
-				print()
-				print(hexdump(arg))
+			if self.response_out is not None:
+				print(file=sys.stderr)
+				print(self.response_out(cmd, arg))
 			bus.stop()
 
 try:
