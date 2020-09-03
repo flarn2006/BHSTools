@@ -7,6 +7,6 @@ class TestDevice(VirtDevice):
 		if cmd == 0x4BD:
 			bus.send(0, self.addr, (0x4BD, arg), count=3)
 
-bus = Intellibus('/dev/ttyUSB0', debug='tx,sync')
+bus = Intellibus('/dev/ttyUSB1', debug='rx,tx,sync')
 dev = TestDevice(bus, 6, 3249, fromhex('00 00 00 AB CD EF'), 0xFFFF, (0xFF, 0xEE))
 bus.run()
