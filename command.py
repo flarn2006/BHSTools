@@ -189,7 +189,7 @@ class CommandSender(VirtDevice):
 				if self.send_count == 0:
 					bus.stop()
 	
-	def handle_cmd(self, cmd, arg):
+	def handle_cmd_nosync(self, cmd, arg, synced):
 		if cmd in self.response_cmds:
 			if self.response_out is not None:
 				print(file=sys.stderr)

@@ -400,8 +400,10 @@ class VirtDevice:
 				elif pkt.dest == self.addr or 0x7000 <= pkt.dest <= 0x70FF:
 					if cmd == 3007:
 						self.send(3008, b'')
-					elif synced:
-						self.handle_cmd(cmd, arg)
+					else:
+						if synced:
+							self.handle_cmd(cmd, arg)
+						self.handle_cmd_nosync(cmd, arg, synced)
 	
 	def send_now(self, cmd, arg=b'', **kwargs):
 		self.ibus.send(0, self.addr, (cmd, arg), **kwargs)
@@ -410,6 +412,9 @@ class VirtDevice:
 		self.outqueue.put((cmd, arg, kwargs))
 
 	def handle_cmd(self, cmd, arg):
+		pass
+	
+	def handle_cmd_nosync(self, cmd, arg, synced):
 		pass
 	
 	def on_ping(self):
