@@ -11,12 +11,15 @@ sector = 0x90000
 if not isfile('.flash_warning_given.flag'):
 	print("This script writes to your panel's Flash memory. Please run flash.py and accept the warning first.")
 
-with open('mod/header.inc') as f:
-	head = f.read()
-with open(sys.argv[2], 'r') as f:
-	asm = f.read()
-
-code = bsl.assemble(asm, header=head)
+if sys.argv[2].endswith('.bin'):
+	with open(sys.argv[2], 'rb') as f:
+		code = f.read()
+else:
+	with open('mod/header.inc') as f:
+		head = f.read()
+	with open(sys.argv[2], 'r') as f:
+		asm = f.read()
+	code = bsl.assemble(asm, header=head)
 
 ser = Serial(sys.argv[1], 38400)
 bsl.init(ser)
