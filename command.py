@@ -129,7 +129,7 @@ command_info = {
 	300:	('Request Panel Config Upload', [200], fmt_upload, arg_hex_raw),
 	301:	('Request Communicator Config Upload', [201, 501], fmt_upload, arg_num_le(2, 'Comm#', -1)),
 	302:	('Request Account Config Upload', [202, 502], fmt_upload, arg_num_le(2, 'Acct#', -1)),
-	303:	('Request Keypad Config Upload', [203, 503], fmt_upload, arg_num_le(2, 'Keypad#', -1)),
+	303:	('Request Keypad Config Upload', [203, 503], fmt_upload, arg_num_le(2, 'Device#', 0)),
 	304:	('Request Alarm Output Config Upload', [204, 504], fmt_upload, arg_num_le(2, 'AlarmOut#', -1)),
 	307:	('Request Area Config Upload', [207, 507], fmt_upload, arg_num_le(2, 'Acct#', -1)),
 	308:	('Request User Config Upload', [208, 508], fmt_upload, arg_two_words_le('Acct# User#', -1)),
