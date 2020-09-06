@@ -14,6 +14,23 @@
 	db 'Call function at'
 	db 'address %1%02X%1%04X? ', 0
 
+- moveback2
+	sub r14, #100h
+	subc r15, #0
+	ret
+- movefwd2
+	add r14, #100h
+	addc r15, #0
+	ret
+- moveback3
+	sub r14, #1000h
+	subc r15, #0
+	ret
+- movefwd3
+	add r14, #1000h
+	addc r15, #0
+	ret
+
 - MemoryBrowser_GetSelAddr
 
 	mov r5, r15
@@ -172,6 +189,14 @@ get_key:
 	jmpr cc_Z, moveback
 	cmpb rl4, #88h
 	jmpr cc_Z, movefwd
+	cmpb rl4, #31h
+	calla cc_Z, &:moveback2
+	cmpb rl4, #33h
+	calla cc_Z, &:movefwd2
+	cmpb rl4, #34h
+	calla cc_Z, &:moveback3
+	cmpb rl4, #36h
+	calla cc_Z, &:movefwd3
 	cmpb rl4, #89h
 	jmpr cc_Z, shift_toggle
 	cmpb rl4, #8
@@ -254,7 +279,7 @@ not_a_digit_key_bridge:
 
 moveback:
 	jb r13.8, moveback_edit
-	sub r14, #100h
+	sub r14, #2h
 	subc r15, #0
 	jmpa cc_UC, &:MemoryBrowser_MainLoop
 moveback_edit:
@@ -268,7 +293,7 @@ moveback_edit_norollover:
 
 movefwd:
 	jb r13.8, movefwd_edit
-	add r14, #100h
+	add r14, #2h
 	addc r15, #0
 	jmpa cc_UC, &:MemoryBrowser_MainLoop
 movefwd_edit:
