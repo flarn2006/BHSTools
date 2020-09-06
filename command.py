@@ -130,6 +130,15 @@ def fmt_datetime(cmd, arg):
 	dt = struct.unpack('<BBBBBBH', arg)
 	return '{6}-{4:02}-{3:02} {2:02}:{1:02}:{0:02}'.format(*dt)
 
+def fmt_hexdump_regs(cmd, arg):
+	hd = hexdump(arg[:-32])
+	regbytes = arg[-32:]
+	regs = '\n'
+	for i in range(16):
+		value = int.from_bytes(regbytes[2*i:2*i+2], 'little')
+		regs += 'r{:<2} = {:04X}{}'.format(i, value, '\n' if i % 4 == 3 else ' | ')
+	return hd + regs.rstrip('\n')
+
 cmd20_replies = [21, 200, 201, 202, 203, 204, 206, 207, 208, 209, 210, 211, 212, 213, 215, 217, 218]
 command_info = {
 	#:		(Name, Response#, ResponseFormatter, ArgParser)
@@ -177,7 +186,7 @@ command_info = {
 	4000:	('Read Analog Inputs', [4001], fmt_hexdump, arg_empty),
 	4002:	('Test Panel Outputs', [], None, arg_hex_le(1, 'bitfield')),
 	4011:	('Set Defaults (Brinks)', [], None, arg_yes),
-	31337:	('Execute Code (requires FW patch)', [42069], fmt_hexdump, arg_c166_bytes)
+	31337:	('Execute Code (requires FW patch)', [42069], fmt_hexdump_regs, arg_c166_bytes)
 }
 
 class CommandSender(VirtDevice):
