@@ -85,15 +85,15 @@ def arg_yes(args):
 def arg_c166_bytes(args):
 	raw = arg_hex_raw(args)
 	prefix = fromhex(''.join([
-		'D4F01400',                                        # mov r15, [r0+#14h]
-		'D4E01200',                                        # mov r14, [r0+#12h]
-		'E6F40401',                                        # mov r4, #(4+256)
-		'E6F555A4',                                        # mov r5, #42069
-		'DC1F',                                            # exts r15, #2
-		'B84E',                                            # mov [r14], r4
-		'C45E0200',                                        # mov [r14+#2], r5
-		'08E4',                                            # add r14, #4
-		'18F0'                                             # addc r15, #0
+		'D4F01400',  # mov r15, [r0+#14h]
+		'D4E01200',  # mov r14, [r0+#12h]
+		'E6F40401',  # mov r4, #(4+256)
+		'E6F555A4',  # mov r5, #42069
+		'DC1F',      # exts r15, #2
+		'B84E',      # mov [r14], r4
+		'C45E0200',  # mov [r14+#2], r5
+		'08E4',      # add r14, #4
+		'18F0',      # addc r15, #0
 	]))
 	return prefix + raw + b'\xDB\0' 
 
