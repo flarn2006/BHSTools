@@ -189,6 +189,7 @@ get_key:
 	jmpr cc_Z, moveback
 	cmpb rl4, #88h
 	jmpr cc_Z, movefwd
+	jb r13.8, skip_non_edit_hotkeys
 	cmpb rl4, #31h
 	calla cc_Z, &:moveback2
 	cmpb rl4, #33h
@@ -197,6 +198,7 @@ get_key:
 	calla cc_Z, &:moveback3
 	cmpb rl4, #36h
 	calla cc_Z, &:movefwd3
+skip_non_edit_hotkeys:
 	cmpb rl4, #89h
 	jmpr cc_Z, shift_toggle
 	cmpb rl4, #8
