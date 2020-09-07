@@ -87,27 +87,15 @@ def arg_c166_bytes(args):
 	prefix = fromhex(''.join([
 		'D4F01400',  # mov r15, [r0+#14h]
 		'D4E01200',  # mov r14, [r0+#12h]
-		'E6F42401',  # mov r4, #(4+256+32)
+		'E6F40401',  # mov r4, #(4+256)
 		'E6F555A4',  # mov r5, #42069
 		'DC1F',      # exts r15, #2
 		'B84E',      # mov [r14], r4
 		'C45E0200',  # mov [r14+#2], r5
 		'08E4',      # add r14, #4
 		'18F0',      # addc r15, #0
-		'88E0',      # mov [-r0], r14
-		'88F0'       # mov [-r0], r15
 	]))
-	#   Code from command line will execute here
-	suffix = fromhex(''.join([
-		'9870',      # mov r7, [r0+]
-		'9860',      # mov r6, [r0+]
-		'09D1',      # addb r6h, #1
-		'1870',      # addc r7, #0
-		'E6F52000',  # mov r5, #32
-		'F2F410FE',  # mov r4, CP
-		'FA006A3C'   # jmps #0, #3C6Ah ;memcpy_nf r4 -> r7:r6 ×r5
-	]))
-	return prefix + raw + suffix
+	return prefix + raw + b'\xDB\0' 
 
 def fmt_hexdump(cmd, arg):
 	return hexdump(arg)
@@ -129,15 +117,6 @@ def fmt_db_entry(cmd, arg):
 def fmt_datetime(cmd, arg):
 	dt = struct.unpack('<BBBBBBH', arg)
 	return '{6}-{4:02}-{3:02} {2:02}:{1:02}:{0:02}'.format(*dt)
-
-def fmt_hexdump_regs(cmd, arg):
-	hd = hexdump(arg[:-32])
-	regbytes = arg[-32:]
-	regs = '\n'
-	for i in range(16):
-		value = int.from_bytes(regbytes[2*i:2*i+2], 'little')
-		regs += 'r{:<2} = {:04X}{}'.format(i, value, '\n' if i % 4 == 3 else ' | ')
-	return hd + regs.rstrip('\n')
 
 cmd20_replies = [21, 200, 201, 202, 203, 204, 206, 207, 208, 209, 210, 211, 212, 213, 215, 217, 218]
 command_info = {
@@ -186,7 +165,7 @@ command_info = {
 	4000:	('Read Analog Inputs', [4001], fmt_hexdump, arg_empty),
 	4002:	('Test Panel Outputs', [], None, arg_hex_le(1, 'bitfield')),
 	4011:	('Set Defaults (Brinks)', [], None, arg_yes),
-	31337:	('Execute Code (requires FW patch)', [42069], fmt_hexdump_regs, arg_c166_bytes)
+	31337:	('Execute Code (requires FW patch)', [42069], fmt_hexdump, arg_c166_bytes)
 }
 
 class CommandSender(VirtDevice):
