@@ -52,7 +52,7 @@ If you are using a [Bus Pirate](http://dangerousprototypes.com/docs/Bus_Pirate),
 	(1)
 	     (type 'y' when prompted)
 
-I have had bad luck using the Raspberry Pi's built-in UART for this purpose; the Pi can receive data from the panel just fine but the panel hasn't responded to anything I've tried sending to it. But your mileage may vary; maybe it will work fine for you. Strangely, BSL communications (more on that shortly) work perfectly fine on a Raspberry Pi.
+I have had bad luck using the Raspberry Pi's built-in UART for this purpose; the Pi can receive data from the panel just fine but the panel hasn't responded to anything I've tried sending to it. But your mileage may vary; maybe it will work fine for you. Interestingly, this issue doesn't always occur with BSL communications (more on that shortly) though I have still encountered issues in the past.
 
 #### About pin 1
 
