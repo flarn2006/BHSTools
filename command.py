@@ -170,7 +170,7 @@ command_info = {
 
 class CommandSender(VirtDevice):
 	def __init__(self, ibus, cmd, arg):
-		super().__init__(ibus, 5, 3121, fromhex('00 00 FF FF FF FF'), 0, (7,1), 0x7FF7)
+		super().__init__(ibus, 5, 3121, fromhex('00 00 FF FF FF FF'), 0, (7,1), 0x7FFE)
 		self.cmd = cmd
 		self.arg = arg
 		self.response_cmds = command_info[cmd][1]
