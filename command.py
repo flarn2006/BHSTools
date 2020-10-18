@@ -4,6 +4,14 @@ import time
 import struct
 from intellibus import *
 
+usage_examples = [
+	("6 00000000", "Clear a panel ID that was loaded into configuration by the host. This will prevent CH Trouble from occurring."),
+	("90 Supers.db 0", "Retrieve and display the configuration record which contains the installer's access code."),
+	("308 1 96", "Retrieve and display the record for the master user in the primary account."),
+	("1002", "Set the system clock to match that of this computer. ({})".format(time.ctime())),
+	("2030 2 m", "Simulate an RF miss warning for the zone associated with input 2 (probably zone 2) even if it is not an RF zone.")
+]
+
 def arg_description(text):
 	def wrapper(func):
 		func.help_text = text
@@ -177,7 +185,7 @@ class CommandSender(VirtDevice):
 		self.response_out = command_info[cmd][2]
 		self.last_tx = 0
 		if len(self.response_cmds) == 0:
-			self.send_count = 4
+			self.send_count = 1
 	
 	def on_ping(self):
 		t = time.time()
@@ -207,7 +215,12 @@ except IndexError:
 	nums.sort()
 	for n in nums:
 		info = command_info[n]
-		print('{:.<40}{:.>4} {}'.format(info[0], n, info[3].help_text))
+		print('{:.<40}{:.>4} {}'.format(info[0], n, info[3].help_text), file=sys.stderr)
+	
+	print('\nExamples:\n', file=sys.stderr)
+	for (cmd, desc) in usage_examples:
+		print('    {:.<36}{:.>4}'.format(cmd, desc), file=sys.stderr)
+
 	exit(255)
 except (KeyError, ValueError):
 	print("{} is not a recognized command. If it's a valid one, try using testbed.py.".format(sys.argv[2]), file=sys.stderr)
