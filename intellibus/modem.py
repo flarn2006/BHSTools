@@ -64,6 +64,10 @@ class ModemInterface(BasicInterface):
 		sleep(1.5)
 		self.serial.write(b'ATH0\r\n')
 		self.hangup_in_progress = False
+	
+	def write(self, packet):
+		super().write(packet)
+		self.send_bytes(b'\x1e')
 
 class VivaldiPacket(Packet):
 	def __init__(self, body=b'', panel_id=0xFFFFFFFF, sync=(0, 0)):

@@ -107,7 +107,7 @@ class BasicInterface:
 			#	print('crc fail: ' + tohex(data + check))
 	
 	def write(self, packet):
-		self.send_bytes(b'\x1e' + bytes(packet).replace(b'\x7d', b'\x7d\x5d').replace(b'\x1e', b'\x7d\x3e') + b'\x1e')
+		self.send_bytes(b'\x1e' + bytes(packet).replace(b'\x7d', b'\x7d\x5d').replace(b'\x1e', b'\x7d\x3e'))
 
 class Interface(BasicInterface):
 	def __init__(self, port, baudrate=38400):
