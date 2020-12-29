@@ -74,6 +74,8 @@ How does this work? These systems contain the capability to have ~~Brinks~~ ADT 
 
 For more information on programming, refer to the [BHS-4000B installation manual](http://alpha.adt.com/content/dam/sop/sop/Product%20Knowledge/PanelPDFs/Install_Programming_Manual_4000B.pdf). In case you have a BHS-3000, the [BHS-3000C manual](https://archive.org/stream/bhsmanuals/BHS-3000C%20Installation%20%26%20Programming%20Manual#mode/2up) is also available, but the 4000B manual is much more detailed and a lot of it applies to BHS-3000 systems as well. (Tip: If you download the manual and save it as "manual.pdf" in the "static" directory, overwriting the file that's already there, it will be viewable inside the Soft3121 Web interface.)
 
+See the [Frequently Asked Questions](https://github.com/flarn2006/BHSTools/wiki/faq) page; there are in fact many questions I've been frequently asked, so if you have any questions, they may very well be answered there.
+
 ### Taking full control
 
 The Infineon C161PI, which powers the BHS-3000 and BHS-4000 panels, contains a built-in Bootstrap Loader that allows for booting the system via a serial connection in place of the connected ROM chip. As I mentioned above, C161PI-based Brinks panels conveniently expose all the connections needed to do so on port J8. By sending custom boot code to the panel via this port, you can do pretty much anything you want with the system, including:
