@@ -118,6 +118,33 @@ def hd(data):
 		data = last[data]
 	print(hexdump(data))
 
+numpy_imported = False
+try:
+	import numpy as np
+
+	def ta(data):
+		if type(data) is int:
+			data = last[data]
+		return np.array(list(data), dtype=np.uint8)
+
+	hd_inner = hd
+	def hd(data):
+		if type(data) is np.array:
+			data = bytes(data)
+	
+	numpy_imported = True
+except ModuleNotFoundError:
+	pass
+except Exception as ex:
+	print('')
+	print("An error occurred while loading numpy, and it wasn't just \"module not found\":")
+	print('')
+	print(f'{type(ex).__name__}: {ex}')
+	print('')
+	print("Numpy is only used by an optional utility function that you probably won't need,")
+	print('so this is most likely nothing to worry about.')
+	print('')
+
 bus = Intellibus(argv[2], debug='tx,rx', dbgout=open('testbed/log.txt', 'a'))
 last={}
 
@@ -146,4 +173,20 @@ print('    @onRX(cmd)')
 print('    def func(arg):')
 print('        #write code here')
 print('')
+print('Utility functions:')
+print('')
+print('    th(bytes) - To Hex')
+print('    fh("hex") - From Hex (to bytes)')
+print('    hd(bytes) - Hex Dump')
+print('    poke(data, n, byte) - Replaces byte n (0-based) in data with byte')
+if numpy_imported:
+	print('    ta(data) - To Array (numpy array, useful for bitwise operations)')
+print('')
+print('Specialized Functions:')
+print('')
+print('    dlpoke(cmd, addr, byte) - Shortcut for send(0, cmd, poke(last[cmd], addr, byte))')
+print('    upload_from_json("filename") - Upload system configuration from a JSON file exported using the web UI')
+print('    s3121_start() - Starts Soft3121 (must be started this way if testbed is running)')
+print('')
+
 print('Press Ctrl+A, \\ to quit.')
