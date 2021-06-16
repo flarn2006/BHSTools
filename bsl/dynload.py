@@ -6,7 +6,7 @@ import struct
 from time import sleep
 from os.path import isfile
 
-if sys.argc != 3:
+if len(sys.argv) != 3:
 	print(f'Usage: {sys.argv[0]} PORT FILENAME', file=sys.stderr)
 	exit(255)
 
