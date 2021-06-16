@@ -6,6 +6,10 @@ import struct
 from time import sleep
 from os.path import isfile
 
+if sys.argc != 3:
+	print(f'Usage: {sys.argv[0]} PORT FILENAME', file=sys.stderr)
+	exit(255)
+
 sector = 0x90000
 
 if not isfile('.flash_warning_given.flag'):
