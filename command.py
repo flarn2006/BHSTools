@@ -84,7 +84,7 @@ def arg_input_status(args):
 
 @arg_description('"Yes"')
 def arg_yes(args):
-	if len(args) == 1 and args[1] == 'Yes':
+	if len(args) == 1 and args[0] == 'Yes':
 		return b'Yes'
 	else:
 		raise ValueError('To confirm resetting all programming to defaults, you must type a literal "Yes" as the only argument to this command. It is case-sensitive, but quotes are not necessary.')
