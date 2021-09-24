@@ -77,8 +77,8 @@ See the [Frequently Asked Questions](https://github.com/flarn2006/BHSTools/wiki/
 The Infineon C161PI, which powers the BHS-3000 and BHS-4000 panels, contains a built-in Bootstrap Loader that allows for booting the system via a serial connection in place of the connected ROM chip. As I mentioned above, C161PI-based Brinks panels conveniently expose all the connections needed to do so on port J8. By sending custom boot code to the panel via this port, you can do pretty much anything you want with the system, including:
 
 * Creating a full dump of the panel's EEPROM (firmware + programming data)
-* Restoring a "bricked" panel by reflashing it*
-* Modifying or replacing the panel's firmware*
+* Restoring a "bricked" panel by reflashing it
+* Modifying or replacing the panel's firmware
 * Directly executing arbitrary code on the panel's CPU
 
 The `bsl` directory contains some scripts for taking advantage of this functionality. For more information about the bootstrap loader, see the [Infineon C161PI user manual](http://www.keil.com/dd/docs/datashts/infineon/c161pi_um.pdf), "The Bootstrap Loader", page 273.
