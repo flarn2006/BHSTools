@@ -54,11 +54,18 @@ You will need to wire your RS-485 adapter to the panel, with the "A" terminal go
 
 Now, it's easiest to wire it to the screw terminals, as you can use regular wire for that. However, if you have the right kind of connector ([this kind](https://www.allelectronics.com/item/con-244/4-pin-connector-w/header-0.10/1.html) fits perfectly, but any standard male-to-female jumper wire should work), attaching it to the programming port will avoid the need to loosen the screws, so there's no risk of other wires falling out.
 
-Once you have it wired, plug the adapter into your computer. You'll probably want to use a laptop for this, though something like a Raspberry Pi is ideal if you want something you can conveniently leave connected to the panel to access over a network. You'll need to determine what serial port the adapter appears as—if you're using Windows, it will most likely be COM3 or a higher-numbered port, though you may need to install a driver before it will work. Look in Device Manager to be sure. If you're on Linux, run `ls /dev/ttyUSB*`; if you just plugged in the adapter, it's probably the highest-numbered one.
+Once you have it wired, plug the adapter into your computer. You'll probably want to use a laptop for this, though something like a Raspberry Pi is ideal if you want something you can conveniently leave connected to the panel to access over a network. You'll need to determine what serial port the adapter appears as—if you're using Windows, it will most likely be COM3 or a higher-numbered port, though you may need to install a driver before it will work. Look in Device Manager to be sure. If you're on Linux, run `ls /dev/ttyUSB*`; if you just plugged in the adapter, it's probably the highest-numbered one. On macOS, run `ls /dev/cu.usbserial*` (FTDI-based adapters show up as something like `/dev/cu.usbserial-XXXXXXXX`); use the `cu.*` device rather than the `tty.*` one.
 
 ### Next steps
 
-Run `s3121.py`, giving the serial port as an argument. For example, `./s3121.py /dev/ttyUSB0` (Linux) or `s3121.py COM3` (Windows), though your command may be different.
+Run `s3121.py`, giving the serial port as an argument. For example, `./s3121.py /dev/ttyUSB0` (Linux), `./s3121.py /dev/cu.usbserial-XXXXXXXX` (macOS), or `s3121.py COM3` (Windows), though your command may be different.
+
+#### Troubleshooting the connection (hard-won tips)
+
+* **You receive nothing at all** (the tools just sit there, no `RX:` lines even though the panel is powered): your TX and RX are almost certainly swapped. Swap the two data wires and try again. Swapping them won't cause any damage.
+* **Plugging a USB-serial cable in seems to glitch the panel** (e.g. it throws a comm/CF trouble): connect the cable's USB end to your computer *first* so the chip is powered, and only then land the TX/RX/GND wires on the panel. An unpowered USB-serial cable clamps the signal lines through its chip's protection diodes and can disturb the port.
+* **Logic levels:** a 3.3V interface works fine on the J8/ASC0 port (a 3.3V Bus Pirate is what these tools were originally developed against). If your USB-TTL cable has a voltage selector, 3.3V is a safe choice.
+* **Using the J8 UART port:** connect only GND and the two data lines (panel pin 2 → your RX, panel pin 3 → your TX). Leave pin 1 (P0L.4) disconnected — it's only for bootstrap-loader access, and driving it can drop the CPU into boot mode on a reset.
 
 Next, open a Web browser and point it to http://127.0.0.1:3121. If you're doing this remotely, such as over SSH to a Raspberry Pi, substitute that device's IP address. **Warning: By default, this software is currently configured to listen on all network interfaces; this means anyone on your network will be able to access your system's programming. If this is a problem, edit `s3121.py` and replace `0.0.0.0` with `127.0.0.1`, though this will make it impossible for you to access it from another device on the network as well.**
 
@@ -70,7 +77,7 @@ How does this work? These systems contain the capability to have ~~Brinks~~ ADT 
 
 For more information on programming, refer to the [BHS-4000B installation manual](https://archive.org/details/bhsmanuals/Install_Programming_Manual_4000B/mode/2up). In case you have a BHS-3000, the [BHS-3000C manual](https://archive.org/stream/bhsmanuals/BHS-3000C%20Installation%20%26%20Programming%20Manual#mode/2up) is also available, but the 4000B manual is much more detailed and a lot of it applies to BHS-3000 systems as well. (Tip: If you download the manual and save it as "manual.pdf" in the "static" directory, overwriting the file that's already there, it will be viewable inside the Soft3121 Web interface.)
 
-See the [Frequently Asked Questions](https://github.com/flarn2006/BHSTools/wiki/faq) page; there are in fact many questions I've been frequently asked, so if you have any questions, they may very well be answered there.
+See the [Frequently Asked Questions](https://github.com/flarn2006/BHSTools/wiki/faq) page; there are in fact many questions I've been frequently asked, so if you have any questions, they may very well be answered there. See also [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for common problems such as the "CF"/"CH" communication trouble and its recurring ~24-hour beep.
 
 ### Taking full control
 

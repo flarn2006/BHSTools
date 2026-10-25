@@ -100,7 +100,7 @@ class Downloader(VirtDevice):
 			self.results.append((cmd, arg))
 		elif cmd == 0x15:
 			print('Done!')
-			self.complete = []
+			self.complete = True
 
 webthread = Thread(target=app.run, kwargs={'host':'0.0.0.0', 'port':3121})
 

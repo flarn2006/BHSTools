@@ -20,3 +20,7 @@ bsl/mod/REG167.INC
 bsl/mod/base.bin
 bsl/mod/patched.bin
 bsl/mod/header.inc
+
+# Python virtualenv
+.venv/
+venv/
